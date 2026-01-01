@@ -22,6 +22,10 @@ class User extends Authenticatable
         'email',
         'password',
         'is_admin',
+        'username',
+        'date_of_birth',
+        'profile_picture',
+        'about_me',
     ];
 
     /**
@@ -45,6 +49,12 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'date_of_birth' => 'date',
         ];
+    }
+
+    public function trades()
+    {
+        return $this->hasMany(Trade::class);
     }
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Login - {{ config('app.name', 'Laravel') }}</title>
+    <title>Register - {{ config('app.name', 'Laravel') }}</title>
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
@@ -14,7 +14,7 @@
             margin: 0;
             background-color: #f5f5f5;
         }
-        .login-container {
+        .register-container {
             background: white;
             padding: 2rem;
             border-radius: 8px;
@@ -35,6 +35,7 @@
             margin-bottom: 0.5rem;
             font-weight: 500;
         }
+        input[type="text"],
         input[type="email"],
         input[type="password"] {
             width: 100%;
@@ -43,14 +44,6 @@
             border-radius: 4px;
             font-size: 1rem;
             box-sizing: border-box;
-        }
-        .remember {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-        .remember input {
-            margin-right: 0.5rem;
         }
         button {
             width: 100%;
@@ -83,17 +76,36 @@
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <h1>Login</h1>
+    <div class="register-container">
+        <h1>Register</h1>
         
         @if ($errors->any())
-            <div class="error" style="margin-bottom: 1rem;">
-                {{ $errors->first() }}
+            <div style="background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
+                <ul style="margin: 0; padding-left: 1.5rem;">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
         @endif
 
-        <form method="POST" action="{{ route('login') }}">
+        <form method="POST" action="{{ route('register') }}">
             @csrf
+
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input 
+                    type="text" 
+                    id="name" 
+                    name="name" 
+                    value="{{ old('name') }}" 
+                    required 
+                    autofocus
+                >
+                @error('name')
+                    <div class="error">{{ $message }}</div>
+                @enderror
+            </div>
 
             <div class="form-group">
                 <label for="email">Email</label>
@@ -102,9 +114,11 @@
                     id="email" 
                     name="email" 
                     value="{{ old('email') }}" 
-                    required 
-                    autofocus
+                    required
                 >
+                @error('email')
+                    <div class="error">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="form-group">
@@ -115,17 +129,25 @@
                     name="password" 
                     required
                 >
+                @error('password')
+                    <div class="error">{{ $message }}</div>
+                @enderror
             </div>
 
-            <div class="remember">
-                <input type="checkbox" id="remember" name="remember">
-                <label for="remember" style="margin: 0;">Remember me</label>
+            <div class="form-group">
+                <label for="password_confirmation">Confirm Password</label>
+                <input 
+                    type="password" 
+                    id="password_confirmation" 
+                    name="password_confirmation" 
+                    required
+                >
             </div>
 
-            <button type="submit">Login</button>
+            <button type="submit">Register</button>
         </form>
 
-        <a href="{{ route('register') }}" class="back-link">Don't have an account? Register</a>
+        <a href="{{ route('login') }}" class="back-link">Already have an account? Login</a>
         <a href="{{ url('/') }}" class="back-link">← Back to home</a>
     </div>
 </body>

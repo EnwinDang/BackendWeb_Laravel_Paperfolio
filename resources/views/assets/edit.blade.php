@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Create Asset - {{ config('app.name', 'Laravel') }}</title>
+    <title>Edit Asset - {{ config('app.name', 'Laravel') }}</title>
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
@@ -61,6 +61,13 @@
         .btn-secondary:hover {
             background-color: #555;
         }
+        .btn-danger {
+            background-color: #dc3545;
+            margin-left: 0.5rem;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
         .nav {
             margin-bottom: 2rem;
         }
@@ -81,7 +88,7 @@
 
     @include('partials.admin-nav')
 
-    <h1>Create Asset</h1>
+    <h1>Edit Asset</h1>
 
     @if ($errors->any())
         <div style="background-color: #fff3cd; border: 1px solid #ffc107; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
@@ -93,8 +100,9 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('assets.store') }}">
+    <form method="POST" action="{{ route('assets.update', $asset) }}">
         @csrf
+        @method('PUT')
 
         <div class="form-group">
             <label for="name">Name *</label>
@@ -102,7 +110,7 @@
                 type="text" 
                 id="name" 
                 name="name" 
-                value="{{ old('name') }}" 
+                value="{{ old('name', $asset->name) }}" 
                 required
                 placeholder="e.g., Bitcoin"
             >
@@ -117,7 +125,7 @@
                 type="text" 
                 id="symbol" 
                 name="symbol" 
-                value="{{ old('symbol') }}" 
+                value="{{ old('symbol', $asset->symbol) }}" 
                 required
                 placeholder="e.g., BTC"
                 style="text-transform: uppercase;"
@@ -138,7 +146,7 @@
                     @foreach($coins as $coin)
                         <option 
                             value="{{ $coin['id'] }}" 
-                            {{ old('coingecko_id') == $coin['id'] ? 'selected' : '' }}
+                            {{ (old('coingecko_id', $asset->coingecko_id) == $coin['id']) ? 'selected' : '' }}
                         >
                             {{ $coin['name'] }} ({{ strtoupper($coin['symbol']) }}) - {{ $coin['id'] }}
                         </option>
@@ -157,9 +165,10 @@
         </div>
 
         <div>
-            <button type="submit" class="btn">Save Asset</button>
+            <button type="submit" class="btn">Update Asset</button>
             <a href="{{ route('assets.index') }}" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
 </body>
 </html>
+

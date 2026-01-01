@@ -22,7 +22,12 @@ class LoginController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended('/assets');
+            
+            if (Auth::user()->is_admin) {
+                return redirect()->intended('/assets');
+            }
+            
+            return redirect()->intended('/dashboard');
         }
 
         return back()->withErrors([

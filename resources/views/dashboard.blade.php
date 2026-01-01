@@ -3,38 +3,30 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Assets - {{ config('app.name', 'Laravel') }}</title>
+    <title>Dashboard - {{ config('app.name', 'Laravel') }}</title>
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
-            max-width: 800px;
+            max-width: 1200px;
             margin: 2rem auto;
             padding: 0 1rem;
         }
-        h1 {
+        h1, h2 {
             margin-bottom: 1rem;
         }
-        .header-actions {
+        .nav {
             margin-bottom: 2rem;
         }
-        .btn {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            background-color: #1b1b18;
-            color: white;
+        .nav a {
+            color: #666;
             text-decoration: none;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
+            margin-right: 1rem;
         }
-        .btn:hover {
-            background-color: #000;
+        .nav a:hover {
+            text-decoration: underline;
         }
-        .btn-secondary {
-            background-color: #666;
-        }
-        .btn-secondary:hover {
-            background-color: #555;
+        .section {
+            margin-bottom: 3rem;
         }
         table {
             width: 100%;
@@ -50,39 +42,19 @@
             background-color: #f5f5f5;
             font-weight: 600;
         }
-        .empty {
-            text-align: center;
-            padding: 2rem;
-            color: #666;
-        }
-        .price {
-            font-family: monospace;
-        }
-        .nav {
-            margin-bottom: 2rem;
-        }
-        .nav a {
-            color: #666;
-            text-decoration: none;
-            margin-right: 1rem;
-        }
-        .nav a:hover {
-            text-decoration: underline;
-        }
-        .trade-form {
+        .btn {
             display: inline-block;
-            margin-left: 0.5rem;
-        }
-        .trade-form input {
-            width: 100px;
-            padding: 0.25rem;
-            border: 1px solid #ddd;
+            padding: 0.5rem 1rem;
+            background-color: #1b1b18;
+            color: white;
+            text-decoration: none;
             border-radius: 4px;
-            margin: 0 0.25rem;
-        }
-        .trade-form button {
-            padding: 0.25rem 0.5rem;
+            border: none;
+            cursor: pointer;
             font-size: 0.875rem;
+        }
+        .btn:hover {
+            background-color: #000;
         }
         .btn-buy {
             background-color: #28a745;
@@ -95,6 +67,17 @@
         }
         .btn-sell:hover {
             background-color: #c82333;
+        }
+        .trade-form {
+            display: inline-block;
+            margin-left: 0.5rem;
+        }
+        .trade-form input {
+            width: 100px;
+            padding: 0.25rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 0 0.25rem;
         }
         .percent-buttons {
             display: flex;
@@ -129,28 +112,31 @@
             border-radius: 4px;
             margin-bottom: 1rem;
         }
+        .price {
+            font-family: monospace;
+        }
+        .empty {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
     </style>
 </head>
 <body>
     <div class="nav">
         <a href="{{ url('/') }}">Home</a>
-        @auth
-            @if(!auth()->user()->is_admin)
-                <a href="{{ route('dashboard') }}">Dashboard</a>
-                <a href="{{ route('portfolio.index') }}">Portfolio</a>
-            @endif
-            <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
-            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                @csrf
-            </form>
-        @else
-            <a href="{{ route('login') }}">Login</a>
-        @endauth
+        <a href="{{ route('portfolio.index') }}">Portfolio</a>
+        <a href="{{ route('assets.index') }}">All Assets</a>
+        @if(auth()->user()->is_admin)
+            <a href="{{ route('assets.create') }}">Add Asset</a>
+        @endif
+        <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
+        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+            @csrf
+        </form>
     </div>
 
-    @include('partials.admin-nav')
-
-    <h1>Assets</h1>
+    <h1>Dashboard - Welcome, {{ auth()->user()->name }}!</h1>
 
     @if(session('success'))
         <div class="success">{{ session('success') }}</div>
@@ -166,82 +152,82 @@
         </div>
     @endif
 
-    @auth
-        @if(auth()->user()->is_admin)
-            <div class="header-actions" style="margin-bottom: 1rem;">
-                <a href="{{ route('assets.create') }}" class="btn">Create Asset</a>
+    @if(!auth()->user()->is_admin)
+        <div class="section">
+            <h2>My Portfolio</h2>
+        @if(count($portfolio) > 0)
+            <table>
+                <thead>
+                    <tr>
+                        <th>Asset</th>
+                        <th>Symbol</th>
+                        <th>Owned</th>
+                        <th>Current Price</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($portfolio as $item)
+                        <tr>
+                            <td>{{ $item['asset']->name }}</td>
+                            <td><strong>{{ $item['asset']->symbol }}</strong></td>
+                            <td class="price">{{ number_format($item['owned'], 8) }}</td>
+                            <td class="price">
+                                @if($item['asset']->price)
+                                    ${{ number_format($item['asset']->price, 2) }}
+                                @else
+                                    <span style="color: #999;">—</span>
+                                @endif
+                            </td>
+                            <td class="price">
+                                @if($item['asset']->price)
+                                    ${{ number_format($item['owned'] * $item['asset']->price, 2) }}
+                                @else
+                                    <span style="color: #999;">—</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @else
+            <div class="empty">
+                <p>You don't own any assets yet. Start trading below!</p>
             </div>
         @endif
-    @endauth
+        </div>
+    @endif
 
-    @if(count($assetsWithOwned) > 0)
-        <table>
-            <thead>
-                <tr>
-                    <th>Symbol</th>
-                    <th>Name</th>
-                    @auth
-                        @if(auth()->user()->is_admin)
-                            <th>CoinGecko ID</th>
-                        @endif
-                    @endauth
-                    <th>Price</th>
-                    <th>Last Updated</th>
-                    @auth
-                        @if(!auth()->user()->is_admin)
+    @if(!auth()->user()->is_admin)
+        <div class="section">
+            <h2>Available Assets</h2>
+            @if(count($assetsWithOwned) > 0)
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Name</th>
+                            <th>Price</th>
                             <th>Owned</th>
                             <th>Actions</th>
-                        @else
-                            <th>Actions</th>
-                        @endif
-                    @endauth
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($assetsWithOwned as $item)
-                    @php
-                        $asset = $item['asset'];
-                        $owned = $item['owned'];
-                    @endphp
-                    <tr>
-                        <td><strong>{{ $asset->symbol }}</strong></td>
-                        <td>{{ $asset->name }}</td>
-                        @auth
-                            @if(auth()->user()->is_admin)
-                                <td>
-                                    @if($asset->coingecko_id)
-                                        <code>{{ $asset->coingecko_id }}</code>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($assetsWithOwned as $item)
+                            @php
+                                $asset = $item['asset'];
+                                $owned = $item['owned'];
+                            @endphp
+                            <tr>
+                                <td><strong>{{ $asset->symbol }}</strong></td>
+                                <td>{{ $asset->name }}</td>
+                                <td class="price">
+                                    @if($asset->price)
+                                        ${{ number_format($asset->price, 2) }}
                                     @else
                                         <span style="color: #999;">—</span>
                                     @endif
                                 </td>
-                            @endif
-                        @endauth
-                        <td class="price">
-                            @if($asset->price)
-                                ${{ number_format($asset->price, 2) }}
-                            @else
-                                <span style="color: #999;">—</span>
-                            @endif
-                        </td>
-                        <td>
-                            @if($asset->price_last_updated_at)
-                                {{ $asset->price_last_updated_at->format('Y-m-d H:i') }}
-                            @else
-                                <span style="color: #999;">—</span>
-                            @endif
-                        </td>
-                        @auth
-                            @if(auth()->user()->is_admin)
-                                <td>
-                                    <a href="{{ route('assets.edit', $asset) }}" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.875rem; margin-right: 0.25rem;">Edit</a>
-                                    <form method="POST" action="{{ route('assets.destroy', $asset) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this asset?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.875rem; background-color: #dc3545;">Delete</button>
-                                    </form>
-                                </td>
-                            @elseif(!auth()->user()->is_admin)
                                 <td class="price">
                                     @if($owned > 0)
                                         {{ number_format($owned, 8) }}
@@ -275,15 +261,53 @@
                                         <span style="color: #999;">No price</span>
                                     @endif
                                 </td>
-                            @endif
-                        @endauth
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @else
+                <div class="empty">
+                    <p>No assets available yet.</p>
+                </div>
+            @endif
+        </div>
+    @endif
+
+    @if(!auth()->user()->is_admin)
+        <div class="section">
+            <h2>Recent Trades</h2>
+        @if($trades->count() > 0)
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Asset</th>
+                        <th>Amount</th>
+                        <th>Price</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
-    @else
-        <div class="empty">
-            <p>No assets yet. <a href="{{ route('assets.create') }}">Create your first asset</a></p>
+                </thead>
+                <tbody>
+                    @foreach($trades as $trade)
+                        <tr>
+                            <td>{{ $trade->created_at->format('Y-m-d H:i') }}</td>
+                            <td>
+                                <strong style="color: {{ $trade->type === 'buy' ? '#28a745' : '#dc3545' }}">
+                                    {{ strtoupper($trade->type) }}
+                                </strong>
+                            </td>
+                            <td>{{ $trade->asset->symbol }}</td>
+                            <td class="price">{{ number_format($trade->amount, 8) }}</td>
+                            <td class="price">${{ number_format($trade->price_snapshot, 2) }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @else
+            <div class="empty">
+                <p>No trades yet.</p>
+            </div>
+        @endif
         </div>
     @endif
 
@@ -298,3 +322,4 @@
     </script>
 </body>
 </html>
+
