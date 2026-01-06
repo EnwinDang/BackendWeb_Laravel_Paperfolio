@@ -1,292 +1,145 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Assets - {{ config('app.name', 'Laravel') }}</title>
-    <style>
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-        h1 {
-            margin-bottom: 1rem;
-        }
-        .header-actions {
-            margin-bottom: 2rem;
-        }
-        .btn {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            background-color: #1b1b18;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-        }
-        .btn:hover {
-            background-color: #000;
-        }
-        .btn-secondary {
-            background-color: #666;
-        }
-        .btn-secondary:hover {
-            background-color: #555;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-        th, td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #f5f5f5;
-            font-weight: 600;
-        }
-        .empty {
-            text-align: center;
-            padding: 2rem;
-            color: #666;
-        }
-        .price {
-            font-family: monospace;
-        }
-        .nav {
-            margin-bottom: 2rem;
-        }
-        .nav a {
-            color: #666;
-            text-decoration: none;
-            margin-right: 1rem;
-        }
-        .nav a:hover {
-            text-decoration: underline;
-        }
-        .trade-form {
-            display: inline-block;
-            margin-left: 0.5rem;
-        }
-        .trade-form input {
-            width: 100px;
-            padding: 0.25rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin: 0 0.25rem;
-        }
-        .trade-form button {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.875rem;
-        }
-        .btn-buy {
-            background-color: #28a745;
-        }
-        .btn-buy:hover {
-            background-color: #218838;
-        }
-        .btn-sell {
-            background-color: #dc3545;
-        }
-        .btn-sell:hover {
-            background-color: #c82333;
-        }
-        .percent-buttons {
-            display: flex;
-            gap: 0.25rem;
-            margin-top: 0.25rem;
-            flex-wrap: wrap;
-        }
-        .percent-btn {
-            padding: 0.125rem 0.5rem;
-            font-size: 0.75rem;
-            background-color: #f0f0f0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .percent-btn:hover {
-            background-color: #e0e0e0;
-        }
-        .success {
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-            padding: 0.75rem;
-            border-radius: 4px;
-            margin-bottom: 1rem;
-        }
-        .error {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-            padding: 0.75rem;
-            border-radius: 4px;
-            margin-bottom: 1rem;
-        }
-    </style>
-</head>
-<body>
-    <div class="nav">
-        <a href="{{ url('/') }}">Home</a>
-        @auth
-            @if(!auth()->user()->is_admin)
-                <a href="{{ route('dashboard') }}">Dashboard</a>
-                <a href="{{ route('portfolio.index') }}">Portfolio</a>
-            @endif
-            <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
-            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                @csrf
-            </form>
-        @else
-            <a href="{{ route('login') }}">Login</a>
-        @endauth
-    </div>
+@extends('layouts.app')
 
-    @include('partials.admin-nav')
+@section('title', 'Assets')
 
+@section('content')
     <h1>Assets</h1>
-
-    @if(session('success'))
-        <div class="success">{{ session('success') }}</div>
-    @endif
-
-    @if($errors->any())
-        <div class="error">
-            <ul style="margin: 0; padding-left: 1.5rem;">
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
 
     @auth
         @if(auth()->user()->is_admin)
-            <div class="header-actions" style="margin-bottom: 1rem;">
-                <a href="{{ route('assets.create') }}" class="btn">Create Asset</a>
+            <div style="margin-bottom: 1rem;">
+                <a href="{{ route('assets.create') }}" class="btn btn-primary">Create Asset</a>
             </div>
         @endif
     @endauth
 
     @if(count($assetsWithOwned) > 0)
-        <table>
-            <thead>
-                <tr>
-                    <th>Symbol</th>
-                    <th>Name</th>
-                    @auth
-                        @if(auth()->user()->is_admin)
-                            <th>CoinGecko ID</th>
-                        @endif
-                    @endauth
-                    <th>Price</th>
-                    <th>Last Updated</th>
-                    @auth
-                        @if(!auth()->user()->is_admin)
-                            <th>Owned</th>
-                            <th>Actions</th>
-                        @else
-                            <th>Actions</th>
-                        @endif
-                    @endauth
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($assetsWithOwned as $item)
-                    @php
-                        $asset = $item['asset'];
-                        $owned = $item['owned'];
-                    @endphp
+        <div class="card">
+            <table>
+                <thead>
                     <tr>
-                        <td><strong>{{ $asset->symbol }}</strong></td>
-                        <td>{{ $asset->name }}</td>
+                        <th>Symbol</th>
+                        <th>Name</th>
                         @auth
                             @if(auth()->user()->is_admin)
-                                <td>
-                                    @if($asset->coingecko_id)
-                                        <code>{{ $asset->coingecko_id }}</code>
-                                    @else
-                                        <span style="color: #999;">—</span>
-                                    @endif
-                                </td>
+                                <th>CoinGecko ID</th>
                             @endif
                         @endauth
-                        <td class="price">
-                            @if($asset->price)
-                                ${{ number_format($asset->price, 2) }}
-                            @else
-                                <span style="color: #999;">—</span>
-                            @endif
-                        </td>
-                        <td>
-                            @if($asset->price_last_updated_at)
-                                {{ $asset->price_last_updated_at->format('Y-m-d H:i') }}
-                            @else
-                                <span style="color: #999;">—</span>
-                            @endif
-                        </td>
+                        <th>Price</th>
+                        <th>Last Updated</th>
                         @auth
-                            @if(auth()->user()->is_admin)
-                                <td>
-                                    <a href="{{ route('assets.edit', $asset) }}" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.875rem; margin-right: 0.25rem;">Edit</a>
-                                    <form method="POST" action="{{ route('assets.destroy', $asset) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this asset?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.875rem; background-color: #dc3545;">Delete</button>
-                                    </form>
-                                </td>
-                            @elseif(!auth()->user()->is_admin)
-                                <td class="price">
-                                    @if($owned > 0)
-                                        {{ number_format($owned, 8) }}
-                                    @else
-                                        <span style="color: #999;">—</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($asset->price)
-                                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                                            <form method="POST" action="{{ route('trades.buy', $asset) }}" class="trade-form" style="display: inline;">
-                                                @csrf
-                                                <input type="number" name="amount" step="0.00000001" min="0.00000001" placeholder="Amount" required style="width: 120px;">
-                                                <button type="submit" class="btn btn-buy">Buy</button>
-                                            </form>
-                                            @if($owned > 0)
-                                                <form method="POST" action="{{ route('trades.sell', $asset) }}" class="trade-form" id="sell-form-{{ $asset->id }}" style="display: inline;">
-                                                    @csrf
-                                                    <input type="number" name="amount" step="0.00000001" min="0.00000001" max="{{ $owned }}" placeholder="Amount" required style="width: 120px;" id="sell-amount-{{ $asset->id }}">
-                                                    <button type="submit" class="btn btn-sell">Sell</button>
-                                                    <div class="percent-buttons">
-                                                        <button type="button" class="percent-btn" onclick="setSellAmount({{ $asset->id }}, {{ $owned }}, 0.25)">25%</button>
-                                                        <button type="button" class="percent-btn" onclick="setSellAmount({{ $asset->id }}, {{ $owned }}, 0.50)">50%</button>
-                                                        <button type="button" class="percent-btn" onclick="setSellAmount({{ $asset->id }}, {{ $owned }}, 0.75)">75%</button>
-                                                        <button type="button" class="percent-btn" onclick="setSellAmount({{ $asset->id }}, {{ $owned }}, 1.00)">100%</button>
-                                                    </div>
-                                                </form>
-                                            @endif
-                                        </div>
-                                    @else
-                                        <span style="color: #999;">No price</span>
-                                    @endif
-                                </td>
+                            @if(!auth()->user()->is_admin)
+                                <th>Owned</th>
+                                <th>Actions</th>
+                            @else
+                                <th>Actions</th>
                             @endif
                         @endauth
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach($assetsWithOwned as $item)
+                        @php
+                            $asset = $item['asset'];
+                            $owned = $item['owned'];
+                        @endphp
+                        <tr>
+                            <td><strong>{{ $asset->symbol }}</strong></td>
+                            <td>{{ $asset->name }}</td>
+                            @auth
+                                @if(auth()->user()->is_admin)
+                                    <td>
+                                        @if($asset->coingecko_id)
+                                            <code>{{ $asset->coingecko_id }}</code>
+                                        @else
+                                            <span style="color: var(--gray);">—</span>
+                                        @endif
+                                    </td>
+                                @endif
+                            @endauth
+                            <td class="price">
+                                @if($asset->price)
+                                    ${{ number_format($asset->price, 2) }}
+                                @else
+                                    <span style="color: var(--gray);">—</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if($asset->price_last_updated_at)
+                                    {{ $asset->price_last_updated_at->format('Y-m-d H:i') }}
+                                @else
+                                    <span style="color: var(--gray);">—</span>
+                                @endif
+                            </td>
+                            @auth
+                                @if(auth()->user()->is_admin)
+                                    <td>
+                                        <a href="{{ route('assets.edit', $asset) }}" class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem; margin-right: 0.25rem;">Edit</a>
+                                        @if($asset->coingecko_id)
+                                            <form method="POST" action="{{ route('assets.update-price', $asset) }}" style="display: inline; margin-right: 0.25rem;">
+                                                @csrf
+                                                <button type="submit" class="btn btn-success" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;" title="Update price from CoinGecko">Update Price</button>
+                                            </form>
+                                        @endif
+                                        <form method="POST" action="{{ route('assets.destroy', $asset) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this asset?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Delete</button>
+                                        </form>
+                                    </td>
+                                @elseif(!auth()->user()->is_admin)
+                                    <td class="price">
+                                        @if($owned > 0)
+                                            {{ number_format($owned, 8) }}
+                                        @else
+                                            <span style="color: var(--gray);">—</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($asset->price)
+                                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                                <form method="POST" action="{{ route('trades.buy', $asset) }}" class="trade-form">
+                                                    @csrf
+                                                    <div style="display: flex; align-items: center; gap: 0.25rem;">
+                                                        <span style="color: var(--gray-dark);">$</span>
+                                                        <input type="number" name="dollar_amount" step="0.01" min="0.01" placeholder="Dollar amount" required style="flex: 1;">
+                                                    </div>
+                                                    <button type="submit" class="btn btn-success">Buy</button>
+                                                </form>
+                                                @if($owned > 0)
+                                                    <form method="POST" action="{{ route('trades.sell', $asset) }}" class="trade-form" id="sell-form-{{ $asset->id }}">
+                                                        @csrf
+                                                        <input type="number" name="amount" step="0.00000001" min="0.00000001" max="{{ $owned }}" placeholder="Amount" required id="sell-amount-{{ $asset->id }}">
+                                                        <button type="submit" class="btn btn-danger">Sell</button>
+                                                        <div class="percent-buttons">
+                                                            <button type="button" class="percent-btn" onclick="setSellAmount({{ $asset->id }}, {{ $owned }}, 0.25)">25%</button>
+                                                            <button type="button" class="percent-btn" onclick="setSellAmount({{ $asset->id }}, {{ $owned }}, 0.50)">50%</button>
+                                                            <button type="button" class="percent-btn" onclick="setSellAmount({{ $asset->id }}, {{ $owned }}, 0.75)">75%</button>
+                                                            <button type="button" class="percent-btn" onclick="setSellAmount({{ $asset->id }}, {{ $owned }}, 1.00)">100%</button>
+                                                        </div>
+                                                    </form>
+                                                @endif
+                                            </div>
+                                        @else
+                                            <span style="color: var(--gray);">No price</span>
+                                        @endif
+                                    </td>
+                                @endif
+                            @endauth
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     @else
-        <div class="empty">
-            <p>No assets yet. <a href="{{ route('assets.create') }}">Create your first asset</a></p>
+        <div class="card">
+            <div class="empty">
+                <p>No assets yet. <a href="{{ route('assets.create') }}">Create your first asset</a></p>
+            </div>
         </div>
     @endif
 
+    @push('scripts')
     <script>
         function setSellAmount(assetId, owned, percentage) {
             const amount = owned * percentage;
@@ -296,5 +149,5 @@
             }
         }
     </script>
-</body>
-</html>
+    @endpush
+@endsection

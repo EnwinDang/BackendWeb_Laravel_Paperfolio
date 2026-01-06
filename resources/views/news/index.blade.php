@@ -1,62 +1,49 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>News</title>
-    <style>
-        body { font-family: system-ui, -apple-system, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
-        .nav { margin-bottom: 2rem; border-bottom: 1px solid #eee; padding-bottom: 1rem; }
-        .nav a { color: #666; text-decoration: none; margin-right: 1rem; }
-        .news-item { margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #eee; }
-        .news-item:last-child { border-bottom: none; }
-        .news-item h2 { margin: 0 0 0.5rem 0; }
-        .news-item img { max-width: 100%; height: auto; margin: 1rem 0; }
-        .news-date { color: #666; font-size: 0.875rem; }
-        .btn { display: inline-block; padding: 0.5rem 1rem; background: #1b1b18; color: white; text-decoration: none; border-radius: 4px; }
-    </style>
-</head>
-<body>
-    <div class="nav">
-        <a href="{{ url('/') }}">Home</a>
-        <a href="{{ route('faq.index') }}">FAQ</a>
-        <a href="{{ route('contact.show') }}">Contact</a>
-        @auth
-            <a href="{{ route('dashboard') }}">Dashboard</a>
-            <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
-            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">@csrf</form>
-        @else
-            <a href="{{ route('login') }}">Login</a>
-        @endauth
-    </div>
+@extends('layouts.app')
 
-    @include('partials.admin-nav')
+@section('title', 'News')
 
+@section('content')
     <h1>Latest News</h1>
     
     @auth
         @if(auth()->user()->is_admin)
             <div style="margin-bottom: 1rem;">
-                <a href="{{ route('news.create') }}" class="btn">Create News</a>
+                <a href="{{ route('news.create') }}" class="btn btn-primary">Create News</a>
             </div>
         @endif
     @endauth
 
     @if($news->isEmpty())
-        <p>No news items yet.</p>
+        <div class="card">
+            <div class="empty">
+                <p>No news items yet.</p>
+            </div>
+        </div>
     @else
         @foreach($news as $item)
-            <div class="news-item">
-                <h2><a href="{{ route('news.show', $item) }}" style="text-decoration: none; color: inherit;">{{ $item->title }}</a></h2>
-                <div class="news-date">{{ $item->publication_date->format('F j, Y') }}</div>
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                    <h2 style="margin: 0; flex: 1;"><a href="{{ route('news.show', $item) }}" style="text-decoration: none; color: inherit;">{{ $item->title }}</a></h2>
+                    @auth
+                        @if(auth()->user()->is_admin)
+                            <div style="display: flex; gap: 0.5rem;">
+                                <a href="{{ route('news.edit', $item) }}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">Edit</a>
+                                <form method="POST" action="{{ route('news.destroy', $item) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this news item?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger" style="padding: 0.5rem 1rem; font-size: 0.875rem;">Delete</button>
+                                </form>
+                            </div>
+                        @endif
+                    @endauth
+                </div>
+                <div style="color: var(--gray); font-size: 0.875rem; margin-bottom: 1rem;">{{ $item->publication_date->format('F j, Y') }}</div>
                 @if($item->image)
-                    <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->title }}">
+                    <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->title }}" style="max-width: 100%; height: auto; margin-bottom: 1rem; border-radius: 8px;">
                 @endif
                 <p>{{ Str::limit(strip_tags($item->content), 200) }}</p>
-                <a href="{{ route('news.show', $item) }}">Read more →</a>
+                <a href="{{ route('news.show', $item) }}" class="btn btn-primary">Read more →</a>
             </div>
         @endforeach
     @endif
-</body>
-</html>
-
+@endsection

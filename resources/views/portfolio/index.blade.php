@@ -1,119 +1,129 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Portfolio - {{ config('app.name', 'Laravel') }}</title>
-    <style>
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            max-width: 900px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-            line-height: 1.6;
-            color: #333;
-        }
-        h1, h2 {
-            color: #1b1b18;
-            margin-bottom: 1rem;
-        }
-        .nav {
-            margin-bottom: 2rem;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 1rem;
-        }
-        .nav a {
-            color: #666;
-            text-decoration: none;
-            margin-right: 1rem;
-        }
-        .nav a:hover {
-            text-decoration: underline;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-        th, td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-        th {
-            background-color: #f9f9f9;
-            font-weight: 600;
-        }
-        .price {
-            font-family: monospace;
-        }
-        .total-row {
-            font-weight: bold;
-            background-color: #f5f5f5;
-            border-top: 2px solid #333;
-        }
-        .empty {
-            text-align: center;
-            padding: 2rem;
-            color: #666;
-        }
-    </style>
-</head>
-<body>
-    <div class="nav">
-        <a href="{{ url('/') }}">Home</a>
-        <a href="{{ route('dashboard') }}">Dashboard</a>
-        <a href="{{ route('assets.index') }}">Assets</a>
-        <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
-        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-            @csrf
-        </form>
-    </div>
+@extends('layouts.app')
 
+@section('title', 'Portfolio')
+
+@section('content')
     <h1>My Portfolio</h1>
 
     @if(count($portfolio) > 0)
-        <table>
-            <thead>
-                <tr>
-                    <th>Asset</th>
-                    <th>Holdings</th>
-                    <th>Current Price</th>
-                    <th>Current Value</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($portfolio as $item)
+        <div class="card" style="margin-bottom: 1.5rem;">
+            <h2>Profit & Loss Summary</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                <div style="padding: 1rem; background: var(--gray-light); border-radius: 6px;">
+                    <div style="color: var(--gray); font-size: 0.875rem; margin-bottom: 0.25rem;">Total Invested</div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--dark-blue);">${{ number_format($totalInvested, 2) }}</div>
+                </div>
+                <div style="padding: 1rem; background: var(--gray-light); border-radius: 6px;">
+                    <div style="color: var(--gray); font-size: 0.875rem; margin-bottom: 0.25rem;">Current Value</div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--dark-blue);">${{ number_format($totalPortfolioValue, 2) }}</div>
+                </div>
+                <div style="padding: 1rem; background: var(--gray-light); border-radius: 6px;">
+                    <div style="color: var(--gray); font-size: 0.875rem; margin-bottom: 0.25rem;">Unrealized Profit</div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: {{ $totalUnrealizedProfit >= 0 ? 'var(--success)' : 'var(--error)' }};">
+                        {{ $totalUnrealizedProfit >= 0 ? '+' : '' }}${{ number_format($totalUnrealizedProfit, 2) }}
+                    </div>
+                </div>
+                <div style="padding: 1rem; background: var(--gray-light); border-radius: 6px;">
+                    <div style="color: var(--gray); font-size: 0.875rem; margin-bottom: 0.25rem;">Realized Profit</div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: {{ $totalRealizedProfit >= 0 ? 'var(--success)' : 'var(--error)' }};">
+                        {{ $totalRealizedProfit >= 0 ? '+' : '' }}${{ number_format($totalRealizedProfit, 2) }}
+                    </div>
+                </div>
+                <div style="padding: 1rem; background: {{ $totalProfit >= 0 ? '#d1fae5' : '#fee2e2' }}; border-radius: 6px; border: 2px solid {{ $totalProfit >= 0 ? 'var(--success)' : 'var(--error)' }};">
+                    <div style="color: var(--gray); font-size: 0.875rem; margin-bottom: 0.25rem;">Total Profit/Loss</div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: {{ $totalProfit >= 0 ? 'var(--success)' : 'var(--error)' }};">
+                        {{ $totalProfit >= 0 ? '+' : '' }}${{ number_format($totalProfit, 2) }}
+                    </div>
+                    <div style="font-size: 0.875rem; color: var(--gray); margin-top: 0.25rem;">
+                        ({{ $totalProfit >= 0 ? '+' : '' }}{{ number_format($totalProfitPercent, 2) }}%)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Holdings</h2>
+            <table>
+                <thead>
                     <tr>
-                        <td><strong>{{ $item['asset']->symbol }}</strong> - {{ $item['asset']->name }}</td>
-                        <td class="price">{{ number_format($item['holdings'], 8) }}</td>
-                        <td class="price">
-                            @if($item['current_price'])
-                                ${{ number_format($item['current_price'], 2) }}
-                            @else
-                                <span style="color: #999;">—</span>
-                            @endif
+                        <th>Asset</th>
+                        <th>Holdings</th>
+                        <th>Avg. Buy Price</th>
+                        <th>Current Price</th>
+                        <th>Current Value</th>
+                        <th>Cost Basis</th>
+                        <th>Unrealized P/L</th>
+                        <th>Realized P/L</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($portfolio as $item)
+                        <tr>
+                            <td><strong>{{ $item['asset']->symbol }}</strong> - {{ $item['asset']->name }}</td>
+                            <td class="price">{{ number_format($item['holdings'], 8) }}</td>
+                            <td class="price">
+                                @if($item['average_purchase_price'] > 0)
+                                    ${{ number_format($item['average_purchase_price'], 2) }}
+                                @else
+                                    <span style="color: var(--gray);">—</span>
+                                @endif
+                            </td>
+                            <td class="price">
+                                @if($item['current_price'])
+                                    ${{ number_format($item['current_price'], 2) }}
+                                @else
+                                    <span style="color: var(--gray);">—</span>
+                                @endif
+                            </td>
+                            <td class="price">
+                                @if($item['current_value'] !== null)
+                                    ${{ number_format($item['current_value'], 2) }}
+                                @else
+                                    <span style="color: var(--gray);">—</span>
+                                @endif
+                            </td>
+                            <td class="price">
+                                @if($item['cost_basis'] > 0)
+                                    ${{ number_format($item['cost_basis'], 2) }}
+                                @else
+                                    <span style="color: var(--gray);">—</span>
+                                @endif
+                            </td>
+                            <td class="price" style="color: {{ $item['unrealized_profit'] >= 0 ? 'var(--success)' : 'var(--error)' }};">
+                                @if($item['holdings'] > 0)
+                                    {{ $item['unrealized_profit'] >= 0 ? '+' : '' }}${{ number_format($item['unrealized_profit'], 2) }}
+                                    <br>
+                                    <small style="font-size: 0.75rem;">
+                                        ({{ $item['unrealized_profit'] >= 0 ? '+' : '' }}{{ number_format($item['unrealized_profit_percent'], 2) }}%)
+                                    </small>
+                                @else
+                                    <span style="color: var(--gray);">—</span>
+                                @endif
+                            </td>
+                            <td class="price" style="color: {{ $item['realized_profit'] >= 0 ? 'var(--success)' : 'var(--error)' }};">
+                                {{ $item['realized_profit'] >= 0 ? '+' : '' }}${{ number_format($item['realized_profit'], 2) }}
+                            </td>
+                        </tr>
+                    @endforeach
+                    <tr style="font-weight: bold; background-color: var(--gray-light); border-top: 2px solid var(--dark-blue);">
+                        <td colspan="4"><strong>Total</strong></td>
+                        <td class="price"><strong>${{ number_format($totalPortfolioValue, 2) }}</strong></td>
+                        <td class="price"><strong>${{ number_format($totalInvestedCurrent ?? 0, 2) }}</strong></td>
+                        <td class="price" style="color: {{ $totalUnrealizedProfit >= 0 ? 'var(--success)' : 'var(--error)' }};">
+                            <strong>{{ $totalUnrealizedProfit >= 0 ? '+' : '' }}${{ number_format($totalUnrealizedProfit, 2) }}</strong>
                         </td>
-                        <td class="price">
-                            @if($item['current_value'] !== null)
-                                ${{ number_format($item['current_value'], 2) }}
-                            @else
-                                <span style="color: #999;">—</span>
-                            @endif
+                        <td class="price" style="color: {{ $totalRealizedProfit >= 0 ? 'var(--success)' : 'var(--error)' }};">
+                            <strong>{{ $totalRealizedProfit >= 0 ? '+' : '' }}${{ number_format($totalRealizedProfit, 2) }}</strong>
                         </td>
                     </tr>
-                @endforeach
-                <tr class="total-row">
-                    <td colspan="3"><strong>Total Portfolio Value</strong></td>
-                    <td class="price"><strong>${{ number_format($totalPortfolioValue, 2) }}</strong></td>
-                </tr>
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     @else
-        <div class="empty">
-            <p>Your portfolio is empty. Start trading to build your portfolio!</p>
+        <div class="card">
+            <div class="empty">
+                <p>Your portfolio is empty. Start trading to build your portfolio!</p>
+            </div>
         </div>
     @endif
-</body>
-</html>
-
+@endsection

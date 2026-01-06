@@ -57,4 +57,28 @@ class User extends Authenticatable
     {
         return $this->hasMany(Trade::class);
     }
+
+    public function newsComments()
+    {
+        return $this->hasMany(\App\Models\NewsComment::class);
+    }
+
+    /**
+     * Get the profile picture URL
+     */
+    public function getProfilePictureUrl()
+    {
+        if ($this->profile_picture) {
+            return asset('storage/' . $this->profile_picture);
+        }
+        return null;
+    }
+
+    /**
+     * Get the display name (username or fallback to name)
+     */
+    public function getDisplayName()
+    {
+        return $this->username ?? $this->name;
+    }
 }

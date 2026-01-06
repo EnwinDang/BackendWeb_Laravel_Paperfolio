@@ -1,62 +1,57 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $user->username ?? $user->name }} - Profile</title>
-    <style>
-        body { font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
-        .nav { margin-bottom: 2rem; border-bottom: 1px solid #eee; padding-bottom: 1rem; }
-        .nav a { color: #666; text-decoration: none; margin-right: 1rem; }
-        .nav a:hover { text-decoration: underline; }
-        .profile-header { display: flex; gap: 2rem; margin-bottom: 2rem; }
-        .profile-picture { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; }
-        .profile-info h1 { margin: 0 0 0.5rem 0; }
-        .profile-section { margin-bottom: 2rem; }
-        .btn { display: inline-block; padding: 0.5rem 1rem; background: #1b1b18; color: white; text-decoration: none; border-radius: 4px; }
-    </style>
-</head>
-<body>
-    <div class="nav">
-        <a href="{{ url('/') }}">Home</a>
-        <a href="{{ route('news.index') }}">News</a>
-        <a href="{{ route('faq.index') }}">FAQ</a>
-        <a href="{{ route('contact.show') }}">Contact</a>
-        @auth
-            <a href="{{ route('dashboard') }}">Dashboard</a>
-            <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
-            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">@csrf</form>
-        @else
-            <a href="{{ route('login') }}">Login</a>
-            <a href="{{ route('register') }}">Register</a>
-        @endauth
-    </div>
+@extends('layouts.app')
 
-    <div class="profile-header">
-        @if($user->profile_picture)
-            <img src="{{ asset('storage/' . $user->profile_picture) }}" alt="Profile" class="profile-picture">
+@section('title', $user->getDisplayName() . ' - Profile')
+
+@section('content')
+    <div class="card">
+        <div style="display: flex; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: flex-start;">
+            <div style="flex-shrink: 0;">
+                @if($user->profile_picture)
+                    <img src="{{ $user->getProfilePictureUrl() }}" alt="{{ $user->getDisplayName() }}'s Profile Picture" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid var(--dark-blue); box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                @else
+                    <div style="width: 150px; height: 150px; border-radius: 50%; background: linear-gradient(135deg, var(--dark-blue) 0%, var(--dark-blue-light) 100%); display: flex; align-items: center; justify-content: center; border: 3px solid var(--dark-blue); color: var(--white); font-size: 3rem; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        {{ strtoupper(substr($user->getDisplayName(), 0, 1)) }}
+                    </div>
+                @endif
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+                <h1 style="margin: 0 0 0.5rem 0; color: var(--dark-blue);">{{ $user->getDisplayName() }}</h1>
+                <p style="color: var(--gray); margin-bottom: 0.75rem; font-size: 0.95rem;">
+                    <strong>Email:</strong> {{ $user->email }}
+                </p>
+                @if($user->date_of_birth)
+                    <p style="color: var(--gray); margin-bottom: 0.75rem; font-size: 0.95rem;">
+                        <strong>Date of Birth:</strong> {{ $user->date_of_birth->format('F j, Y') }}
+                        @php
+                            $age = $user->date_of_birth->age;
+                        @endphp
+                        <span style="color: var(--gray);">({{ $age }} {{ Str::plural('year', $age) }} old)</span>
+                    </p>
+                @endif
+                @auth
+                    @if(Auth::id() === $user->id)
+                        <div style="margin-top: 1rem;">
+                            <a href="{{ route('profile.edit') }}" class="btn btn-primary">Edit Profile</a>
+                        </div>
+                    @endif
+                @endauth
+            </div>
+        </div>
+
+        @if($user->about_me)
+            <div style="border-top: 1px solid var(--gray-light); padding-top: 1.5rem; margin-top: 1.5rem;">
+                <h2 style="margin-bottom: 1rem; color: var(--dark-blue);">About Me</h2>
+                <div style="line-height: 1.8; color: var(--gray-dark); white-space: pre-wrap;">{{ $user->about_me }}</div>
+            </div>
         @else
-            <div style="width: 150px; height: 150px; border-radius: 50%; background: #ddd; display: flex; align-items: center; justify-content: center;">No Photo</div>
-        @endif
-        <div class="profile-info">
-            <h1>{{ $user->username ?? $user->name }}</h1>
-            @if($user->date_of_birth)
-                <p><strong>Date of Birth:</strong> {{ $user->date_of_birth->format('F j, Y') }}</p>
-            @endif
             @auth
                 @if(Auth::id() === $user->id)
-                    <a href="{{ route('profile.edit') }}" class="btn">Edit Profile</a>
+                    <div style="border-top: 1px solid var(--gray-light); padding-top: 1.5rem; margin-top: 1.5rem; text-align: center; color: var(--gray);">
+                        <p>You haven't added an "About Me" section yet.</p>
+                        <a href="{{ route('profile.edit') }}" class="btn btn-secondary" style="margin-top: 0.5rem;">Add About Me</a>
+                    </div>
                 @endif
             @endauth
-        </div>
+        @endif
     </div>
-
-    @if($user->about_me)
-        <div class="profile-section">
-            <h2>About Me</h2>
-            <p>{{ $user->about_me }}</p>
-        </div>
-    @endif
-</body>
-</html>
-
+@endsection

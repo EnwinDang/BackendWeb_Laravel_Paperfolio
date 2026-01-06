@@ -16,22 +16,26 @@ class TradeController extends Controller
         }
 
         $request->validate([
-            'amount' => 'required|numeric|min:0.00000001',
+            'dollar_amount' => 'required|numeric|min:0.01',
         ]);
 
         if (!$asset->price) {
             return back()->withErrors(['error' => 'Asset price is not available.']);
         }
 
+        // Calculate coin amount based on dollar amount
+        $dollarAmount = (float) $request->dollar_amount;
+        $coinAmount = $dollarAmount / $asset->price;
+
         Trade::create([
             'user_id' => Auth::id(),
             'asset_id' => $asset->id,
             'type' => 'buy',
-            'amount' => $request->amount,
+            'amount' => $coinAmount,
             'price_snapshot' => $asset->price,
         ]);
 
-        return redirect()->route('dashboard')->with('success', 'Buy order executed successfully.');
+        return redirect()->route('dashboard')->with('success', 'Buy order executed successfully. Purchased ' . number_format($coinAmount, 8) . ' ' . $asset->symbol . ' for $' . number_format($dollarAmount, 2) . '.');
     }
 
     public function sell(Request $request, Asset $asset)

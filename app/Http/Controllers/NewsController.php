@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\News;
+use App\Models\NewsComment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class NewsController extends Controller
@@ -18,6 +20,7 @@ class NewsController extends Controller
 
     public function show(News $news)
     {
+        $news->load(['comments.user']);
         return view('news.show', compact('news'));
     }
 
@@ -74,11 +77,18 @@ class NewsController extends Controller
 
     public function edit(News $news)
     {
+        if (!auth()->check() || !auth()->user()->is_admin) {
+            abort(403, 'Only admins can edit news.');
+        }
         return view('news.edit', compact('news'));
     }
 
     public function update(Request $request, News $news)
     {
+        if (!auth()->check() || !auth()->user()->is_admin) {
+            abort(403, 'Only admins can update news.');
+        }
+
         $request->validate([
             'title' => 'required|string|max:255',
             'image' => 'nullable|image|max:2048',
@@ -86,10 +96,21 @@ class NewsController extends Controller
             'publication_date' => 'nullable|date',
         ]);
 
+        $publicationDate = null;
+        if ($request->publication_date) {
+            try {
+                $publicationDate = \Carbon\Carbon::parse($request->publication_date);
+            } catch (\Exception $e) {
+                $publicationDate = $news->publication_date ?? now();
+            }
+        } else {
+            $publicationDate = $news->publication_date ?? now();
+        }
+
         $data = [
             'title' => $request->title,
             'content' => $request->content,
-            'publication_date' => $request->publication_date,
+            'publication_date' => $publicationDate,
         ];
 
         if ($request->hasFile('image')) {
@@ -107,10 +128,42 @@ class NewsController extends Controller
 
     public function destroy(News $news)
     {
+        if (!auth()->check() || !auth()->user()->is_admin) {
+            abort(403, 'Only admins can delete news.');
+        }
+
         if ($news->image) {
             Storage::disk('public')->delete($news->image);
         }
         $news->delete();
         return redirect()->route('news.index')->with('success', 'News item deleted successfully.');
+    }
+
+    public function storeComment(Request $request, News $news)
+    {
+        $request->validate([
+            'content' => 'required|string|max:2000',
+        ]);
+
+        NewsComment::create([
+            'news_id' => $news->id,
+            'user_id' => Auth::id(),
+            'content' => $request->content,
+        ]);
+
+        return redirect()->route('news.show', $news)->with('success', 'Comment added successfully.');
+    }
+
+    public function destroyComment(NewsComment $comment)
+    {
+        // Only allow admins or the comment owner to delete
+        if (!Auth::check() || (!Auth::user()->is_admin && Auth::id() !== $comment->user_id)) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $news = $comment->news;
+        $comment->delete();
+
+        return redirect()->route('news.show', $news)->with('success', 'Comment deleted successfully.');
     }
 }
