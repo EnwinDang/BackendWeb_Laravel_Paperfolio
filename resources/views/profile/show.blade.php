@@ -33,6 +33,10 @@
                         <div style="margin-top: 1rem;">
                             <a href="{{ route('profile.edit') }}" class="btn btn-primary">Edit Profile</a>
                         </div>
+                    @elseif(!$user->is_admin)
+                        <div style="margin-top: 1rem;">
+                            <a href="{{ route('messages.show', $user) }}" class="btn btn-primary">Send Private Message</a>
+                        </div>
                     @endif
                 @endauth
             </div>

@@ -80,6 +80,15 @@
         border-color: var(--dark-blue);
         box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
     }
+    .error-input {
+        border-color: var(--error) !important;
+    }
+    .error-message {
+        color: var(--error);
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        display: block;
+    }
     .btn {
         padding: 0.75rem 1.5rem;
         border: none;
@@ -117,6 +126,10 @@
         position: relative;
         margin-top: 0;
         flex-shrink: 0;
+    }
+    /* Hide layout error messages on auth pages */
+    .container .alert {
+        display: none !important;
     }
     
     /* Responsive styles */
@@ -183,7 +196,11 @@
                     value="{{ old('name') }}" 
                     required 
                     autofocus
+                    class="@error('name') error-input @enderror"
                 >
+                @error('name')
+                    <div class="error-message">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="form-group">
@@ -194,7 +211,11 @@
                     name="email" 
                     value="{{ old('email') }}" 
                     required
+                    class="@error('email') error-input @enderror"
                 >
+                @error('email')
+                    <div class="error-message">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="form-group">
@@ -204,7 +225,11 @@
                     id="password" 
                     name="password" 
                     required
+                    class="@error('password') error-input @enderror"
                 >
+                @error('password')
+                    <div class="error-message">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="form-group">

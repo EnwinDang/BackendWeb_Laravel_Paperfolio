@@ -167,21 +167,6 @@ class AssetController extends Controller
         return redirect()->route('assets.index')->with('success', 'Asset updated successfully.');
     }
 
-    public function updatePrice(Asset $asset)
-    {
-        if (!$asset->coingecko_id) {
-            return back()->with('error', 'Asset does not have a CoinGecko ID.');
-        }
-
-        $success = $this->updateAssetPrice($asset);
-
-        if ($success) {
-            return back()->with('success', "Price updated successfully for {$asset->symbol}.");
-        } else {
-            return back()->with('error', "Failed to update price for {$asset->symbol}. Please check the CoinGecko ID.");
-        }
-    }
-
     public function destroy(Asset $asset)
     {
         $asset->delete();

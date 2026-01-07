@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Login')
+@section('title', 'Reset Password')
 
 @push('styles')
 <style>
@@ -89,21 +89,6 @@
         margin-top: 0.5rem;
         display: block;
     }
-    .remember {
-        display: flex;
-        align-items: center;
-        margin-bottom: 1.5rem;
-    }
-    .remember input {
-        width: auto;
-        margin-right: 0.5rem;
-        cursor: pointer;
-    }
-    .remember label {
-        margin: 0;
-        cursor: pointer;
-        font-size: 0.95rem;
-    }
     .btn {
         padding: 0.75rem 1.5rem;
         border: none;
@@ -142,12 +127,7 @@
         margin-top: 0;
         flex-shrink: 0;
     }
-    /* Hide layout error messages on auth pages */
-    .container .alert {
-        display: none !important;
-    }
     
-    /* Responsive styles */
     @media (max-width: 640px) {
         .content-wrapper {
             padding: 0.75rem;
@@ -166,7 +146,7 @@
         }
         .form-group input {
             padding: 0.625rem;
-            font-size: 16px; /* Prevents zoom on iOS */
+            font-size: 16px;
         }
         .btn {
             padding: 0.625rem 1.25rem;
@@ -177,30 +157,16 @@
             margin-top: 0.75rem;
         }
     }
-    
-    @media (max-width: 480px) {
-        .auth-container {
-            padding: 1.25rem;
-        }
-        .auth-container h1 {
-            font-size: 1.375rem;
-        }
-    }
-    
-    @media (min-width: 641px) and (max-width: 1024px) {
-        .auth-container {
-            max-width: 450px;
-        }
-    }
 </style>
 @endpush
 
 @section('content')
     <div class="auth-container">
-        <h1>Login</h1>
-        
-        <form method="POST" action="{{ route('login') }}">
+        <h1>Reset Password</h1>
+
+        <form method="POST" action="{{ route('password.update') }}">
             @csrf
+            <input type="hidden" name="token" value="{{ $token }}">
 
             <div class="form-group">
                 <label for="email">Email</label>
@@ -208,10 +174,12 @@
                     type="email" 
                     id="email" 
                     name="email" 
-                    value="{{ old('email') }}" 
+                    value="{{ $email ?? old('email') }}" 
                     required 
                     autofocus
+                    readonly
                     class="@error('email') error-input @enderror"
+                    style="background-color: var(--gray-light);"
                 >
                 @error('email')
                     <div class="error-message">{{ $message }}</div>
@@ -219,7 +187,7 @@
             </div>
 
             <div class="form-group">
-                <label for="password">Password</label>
+                <label for="password">New Password</label>
                 <input 
                     type="password" 
                     id="password" 
@@ -232,19 +200,20 @@
                 @enderror
             </div>
 
-            <div class="remember">
-                <input type="checkbox" id="remember" name="remember">
-                <label for="remember">Remember me</label>
+            <div class="form-group">
+                <label for="password_confirmation">Confirm Password</label>
+                <input 
+                    type="password" 
+                    id="password_confirmation" 
+                    name="password_confirmation" 
+                    required
+                >
             </div>
 
-            <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Reset Password</button>
         </form>
 
-        <div style="text-align: center; margin-top: 1rem;">
-            <a href="{{ route('password.request') }}" class="back-link">Forgot your password?</a>
-        </div>
-
-        <a href="{{ route('register') }}" class="back-link">Don't have an account? Register</a>
-        <a href="{{ url('/') }}" class="back-link">← Back to home</a>
+        <a href="{{ route('login') }}" class="back-link">← Back to Login</a>
     </div>
 @endsection
+

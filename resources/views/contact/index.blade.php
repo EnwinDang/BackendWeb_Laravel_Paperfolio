@@ -21,6 +21,7 @@
                         <th>Email</th>
                         <th>Subject</th>
                         <th>Status</th>
+                        <th>Response</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -36,6 +37,15 @@
                                     <span style="color: var(--gray);">Read</span>
                                 @else
                                     <strong style="color: var(--dark-blue);">Unread</strong>
+                                @endif
+                            </td>
+                            <td>
+                                @if($submission->admin_response)
+                                    <span style="color: var(--success);">✓ Responded</span>
+                                    <br>
+                                    <small style="color: var(--gray);">{{ $submission->responded_at->format('Y-m-d H:i') }}</small>
+                                @else
+                                    <span style="color: var(--gray);">No response</span>
                                 @endif
                             </td>
                             <td>
@@ -64,4 +74,5 @@
         </div>
     @endif
 @endsection
+
 

@@ -253,6 +253,12 @@
             border: 1px solid #f59e0b;
             color: #92400e;
         }
+        .error-message {
+            color: var(--error);
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            display: block;
+        }
         .empty {
             text-align: center;
             padding: 3rem;
@@ -381,6 +387,8 @@
                     @else
                         {{-- Full navigation for regular users --}}
                         <a href="{{ route('news.index') }}">News</a>
+                        <a href="{{ route('leaderboard.index') }}">Leaderboard</a>
+                        <a href="{{ route('messages.index') }}">Messages</a>
                         <a href="{{ route('dashboard') }}">Dashboard</a>
                         <a href="{{ route('portfolio.index') }}">Portfolio</a>
                         <a href="{{ route('profile.show', auth()->user()) }}">Profile</a>
@@ -392,7 +400,7 @@
                 @else
                     {{-- Navigation for guests --}}
                     <a href="{{ route('news.index') }}">News</a>
-                    <a href="{{ route('faq.index') }}">FAQ</a>
+                    <a href="{{ route('leaderboard.index') }}">Leaderboard</a>
                     <a href="{{ route('login') }}">Login</a>
                     <a href="{{ route('register') }}">Register</a>
                 @endauth

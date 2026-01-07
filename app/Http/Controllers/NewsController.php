@@ -10,11 +10,20 @@ use Illuminate\Support\Facades\Storage;
 
 class NewsController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $news = News::orderBy('publication_date', 'desc')
+        $query = News::query();
+        
+        // Handle search
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            $query->where('title', 'LIKE', '%' . $searchTerm . '%');
+        }
+        
+        $news = $query->orderBy('publication_date', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();
+        
         return view('news.index', compact('news'));
     }
 

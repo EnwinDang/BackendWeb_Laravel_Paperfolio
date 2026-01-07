@@ -3,23 +3,48 @@
 @section('title', 'News')
 
 @section('content')
-    <h1>Latest News</h1>
-    
-    @auth
-        @if(auth()->user()->is_admin)
-            <div style="margin-bottom: 1rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <h1 style="margin: 0;">Latest News</h1>
+        @auth
+            @if(auth()->user()->is_admin)
                 <a href="{{ route('news.create') }}" class="btn btn-primary">Create News</a>
-            </div>
-        @endif
-    @endauth
+            @endif
+        @endauth
+    </div>
+    
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <form method="GET" action="{{ route('news.index') }}" style="display: flex; gap: 0.5rem; align-items: center;">
+            <input 
+                type="text" 
+                name="search" 
+                value="{{ request('search') }}" 
+                placeholder="Search news by title..." 
+                style="flex: 1; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem;"
+            >
+            <button type="submit" class="btn btn-primary">Search</button>
+            @if(request('search'))
+                <a href="{{ route('news.index') }}" class="btn btn-secondary">Clear</a>
+            @endif
+        </form>
+    </div>
 
     @if($news->isEmpty())
         <div class="card">
             <div class="empty">
-                <p>No news items yet.</p>
+                @if(request('search'))
+                    <p>No news items found matching "{{ request('search') }}".</p>
+                    <a href="{{ route('news.index') }}" class="btn btn-secondary" style="margin-top: 1rem;">View All News</a>
+                @else
+                    <p>No news items yet.</p>
+                @endif
             </div>
         </div>
     @else
+        @if(request('search'))
+            <div style="margin-bottom: 1rem; color: var(--gray);">
+                Found {{ $news->count() }} {{ \Illuminate\Support\Str::plural('result', $news->count()) }} for "{{ request('search') }}"
+            </div>
+        @endif
         @foreach($news as $item)
             <div class="card" style="margin-bottom: 1.5rem;">
                 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
@@ -41,7 +66,7 @@
                 @if($item->image)
                     <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->title }}" style="max-width: 100%; height: auto; margin-bottom: 1rem; border-radius: 8px;">
                 @endif
-                <p>{{ Str::limit(strip_tags($item->content), 200) }}</p>
+                <p>{{ \Illuminate\Support\Str::limit(strip_tags($item->content), 200) }}</p>
                 <a href="{{ route('news.show', $item) }}" class="btn btn-primary">Read more →</a>
             </div>
         @endforeach

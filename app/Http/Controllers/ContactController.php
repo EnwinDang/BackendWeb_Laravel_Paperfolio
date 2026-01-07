@@ -94,4 +94,40 @@ class ContactController extends Controller
         $contactSubmission->delete();
         return redirect()->route('contact.index')->with('success', 'Submission deleted successfully.');
     }
+
+    public function respond(Request $request, ContactSubmission $contactSubmission)
+    {
+        $request->validate([
+            'admin_response' => 'required|string|max:5000',
+        ]);
+
+        $contactSubmission->update([
+            'admin_response' => $request->admin_response,
+            'responded_at' => now(),
+        ]);
+
+        // Send email to the user
+        Mail::raw(
+            "Hello {$contactSubmission->name},\n\n" .
+            "Thank you for contacting us. Here is our response to your inquiry:\n\n" .
+            "---\n" .
+            "Your original message:\n" .
+            "Subject: {$contactSubmission->subject}\n\n" .
+            "{$contactSubmission->message}\n\n" .
+            "---\n\n" .
+            "Our response:\n" .
+            "{$request->admin_response}\n\n" .
+            "---\n\n" .
+            "If you have any further questions, please don't hesitate to contact us again.\n\n" .
+            "Best regards,\n" .
+            config('app.name', 'CryptoHub Team'),
+            function ($message) use ($contactSubmission) {
+                $message->to($contactSubmission->email)
+                    ->subject('Re: ' . $contactSubmission->subject);
+            }
+        );
+
+        return redirect()->route('contact.show-submission', $contactSubmission)
+            ->with('success', 'Response sent successfully to ' . $contactSubmission->email . '.');
+    }
 }

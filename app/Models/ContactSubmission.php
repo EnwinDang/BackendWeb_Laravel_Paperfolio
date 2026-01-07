@@ -12,12 +12,15 @@ class ContactSubmission extends Model
         'subject',
         'message',
         'read',
+        'admin_response',
+        'responded_at',
     ];
 
     protected function casts(): array
     {
         return [
             'read' => 'boolean',
+            'responded_at' => 'datetime',
         ];
     }
 }

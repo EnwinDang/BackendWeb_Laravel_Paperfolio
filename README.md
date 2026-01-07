@@ -16,7 +16,7 @@ A Laravel-based paper trading application for practicing cryptocurrency trading 
 
 - **Asset Management**: Create, edit, and delete cryptocurrency assets
 - **CoinGecko Integration**: Link assets to CoinGecko for automatic price updates
-- **Price Management**: Automatic price updates every 10 minutes from CoinGecko API
+- **Price Management**: Automatic price updates every 5 minutes from CoinGecko API (when scheduler is running)
 
 ## Admin Login
 
@@ -31,7 +31,22 @@ php artisan key:generate
 php artisan migrate:fresh --seed
 ```
 
-The scheduler runs automatically to update prices every 10 minutes.
+## Running the Application
+
+### Starting the Scheduler
+
+To enable automatic price updates, run the scheduler in a separate terminal:
+
+```bash
+php artisan scheduler:run
+```
+
+This will:
+- Update asset prices every 5 minutes automatically from CoinGecko
+- Run continuously until you stop it (Ctrl+C)
+- Only runs when you explicitly start it (no crontab needed)
+
+**Note**: Keep this command running while you're using the application. Prices will update automatically every 5 minutes.
 
 ## Database
 

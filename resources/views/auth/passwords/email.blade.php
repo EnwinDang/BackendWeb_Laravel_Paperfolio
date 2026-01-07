@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Login')
+@section('title', 'Forgot Password')
 
 @push('styles')
 <style>
@@ -89,21 +89,6 @@
         margin-top: 0.5rem;
         display: block;
     }
-    .remember {
-        display: flex;
-        align-items: center;
-        margin-bottom: 1.5rem;
-    }
-    .remember input {
-        width: auto;
-        margin-right: 0.5rem;
-        cursor: pointer;
-    }
-    .remember label {
-        margin: 0;
-        cursor: pointer;
-        font-size: 0.95rem;
-    }
     .btn {
         padding: 0.75rem 1.5rem;
         border: none;
@@ -142,12 +127,17 @@
         margin-top: 0;
         flex-shrink: 0;
     }
-    /* Hide layout error messages on auth pages */
-    .container .alert {
-        display: none !important;
+    .alert {
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+    }
+    .alert-success {
+        background-color: #d1fae5;
+        border: 1px solid #10b981;
+        color: #065f46;
     }
     
-    /* Responsive styles */
     @media (max-width: 640px) {
         .content-wrapper {
             padding: 0.75rem;
@@ -166,7 +156,7 @@
         }
         .form-group input {
             padding: 0.625rem;
-            font-size: 16px; /* Prevents zoom on iOS */
+            font-size: 16px;
         }
         .btn {
             padding: 0.625rem 1.25rem;
@@ -177,29 +167,24 @@
             margin-top: 0.75rem;
         }
     }
-    
-    @media (max-width: 480px) {
-        .auth-container {
-            padding: 1.25rem;
-        }
-        .auth-container h1 {
-            font-size: 1.375rem;
-        }
-    }
-    
-    @media (min-width: 641px) and (max-width: 1024px) {
-        .auth-container {
-            max-width: 450px;
-        }
-    }
 </style>
 @endpush
 
 @section('content')
     <div class="auth-container">
-        <h1>Login</h1>
+        <h1>Reset Password</h1>
         
-        <form method="POST" action="{{ route('login') }}">
+        <p style="color: var(--gray); margin-bottom: 1.5rem; text-align: center;">
+            Enter your email address and we'll send you a link to reset your password.
+        </p>
+
+        @if (session('status'))
+            <div class="alert alert-success">
+                {{ session('status') }}
+            </div>
+        @endif
+
+        <form method="POST" action="{{ route('password.email') }}">
             @csrf
 
             <div class="form-group">
@@ -218,33 +203,10 @@
                 @enderror
             </div>
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    required
-                    class="@error('password') error-input @enderror"
-                >
-                @error('password')
-                    <div class="error-message">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <div class="remember">
-                <input type="checkbox" id="remember" name="remember">
-                <label for="remember">Remember me</label>
-            </div>
-
-            <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Send Password Reset Link</button>
         </form>
 
-        <div style="text-align: center; margin-top: 1rem;">
-            <a href="{{ route('password.request') }}" class="back-link">Forgot your password?</a>
-        </div>
-
-        <a href="{{ route('register') }}" class="back-link">Don't have an account? Register</a>
-        <a href="{{ url('/') }}" class="back-link">← Back to home</a>
+        <a href="{{ route('login') }}" class="back-link">← Back to Login</a>
     </div>
 @endsection
+

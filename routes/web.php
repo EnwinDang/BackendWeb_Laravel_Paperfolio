@@ -13,6 +13,7 @@ Route::get('/', function () {
 // Public routes
 Route::get('/news', [\App\Http\Controllers\NewsController::class, 'index'])->name('news.index');
 Route::get('/faq', [\App\Http\Controllers\FaqController::class, 'index'])->name('faq.index');
+Route::get('/leaderboard', [\App\Http\Controllers\LeaderboardController::class, 'index'])->name('leaderboard.index');
 
 // Comment routes (authenticated users only)
 Route::middleware(['auth'])->group(function () {
@@ -28,6 +29,12 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register']);
 
+// Password reset routes
+Route::get('/password/reset', [\App\Http\Controllers\Auth\ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('/password/email', [\App\Http\Controllers\Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('/password/reset/{token}', [\App\Http\Controllers\Auth\ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('/password/reset', [\App\Http\Controllers\Auth\ResetPasswordController::class, 'reset'])->name('password.update');
+
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/portfolio', [\App\Http\Controllers\PortfolioController::class, 'index'])->name('portfolio.index');
@@ -38,6 +45,11 @@ Route::middleware(['auth'])->group(function () {
     // Contact form - only for regular users (not admins)
     Route::get('/contact', [\App\Http\Controllers\ContactController::class, 'show'])->name('contact.show');
     Route::post('/contact', [\App\Http\Controllers\ContactController::class, 'submit'])->name('contact.submit');
+    
+    // Messages - must come before /profile/{user} to avoid route conflicts
+    Route::get('/messages', [\App\Http\Controllers\MessageController::class, 'index'])->name('messages.index');
+    Route::get('/messages/{user}', [\App\Http\Controllers\MessageController::class, 'show'])->name('messages.show');
+    Route::post('/messages/{user}', [\App\Http\Controllers\MessageController::class, 'store'])->name('messages.store');
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -53,7 +65,6 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::resource('assets', AssetController::class)->except([
         'index', 'show'
     ]);
-    Route::post('/assets/{asset}/update-price', [AssetController::class, 'updatePrice'])->name('assets.update-price');
     
     // User management
     Route::get('/users', [\App\Http\Controllers\UserController::class, 'index'])->name('users.index');
@@ -84,6 +95,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // Contact submissions management
     Route::get('/contact/submissions', [\App\Http\Controllers\ContactController::class, 'index'])->name('contact.index');
     Route::get('/contact/submissions/{contactSubmission}', [\App\Http\Controllers\ContactController::class, 'showSubmission'])->name('contact.show-submission');
+    Route::post('/contact/submissions/{contactSubmission}/respond', [\App\Http\Controllers\ContactController::class, 'respond'])->name('contact.respond');
     Route::post('/contact/submissions/{contactSubmission}/mark-read', [\App\Http\Controllers\ContactController::class, 'markAsRead'])->name('contact.mark-read');
     Route::post('/contact/submissions/{contactSubmission}/mark-unread', [\App\Http\Controllers\ContactController::class, 'markAsUnread'])->name('contact.mark-unread');
     Route::delete('/contact/submissions/{contactSubmission}', [\App\Http\Controllers\ContactController::class, 'destroy'])->name('contact.destroy');

@@ -114,6 +114,36 @@
         @endguest
     </div>
 
+    <div class="card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid var(--dark-blue); margin-bottom: 2rem;">
+        <div style="text-align: center; padding: 2rem;">
+            <h2 style="color: var(--dark-blue); margin-bottom: 1rem; font-size: 2rem;">How It Works</h2>
+            <div style="max-width: 800px; margin: 0 auto;">
+                <p style="font-size: 1.25rem; color: var(--gray-dark); margin-bottom: 1.5rem; line-height: 1.8;">
+                    <strong style="color: var(--dark-blue);">Every new player starts with $1,000 in virtual money!</strong>
+                </p>
+                <p style="font-size: 1.1rem; color: var(--gray-dark); line-height: 1.8; margin-bottom: 1rem;">
+                    This is a competitive trading game where you test your skills with fake money. 
+                    Buy and sell cryptocurrencies, build your portfolio, and compete on the leaderboard 
+                    to see who has the best trading skills!
+                </p>
+                <div style="display: flex; justify-content: center; gap: 3rem; margin-top: 2.5rem; flex-wrap: wrap;">
+                    <div style="text-align: center; flex: 1; min-width: 150px;">
+                        <div style="font-size: 2.5rem; font-weight: bold; color: var(--dark-blue); margin-bottom: 0.5rem;">$1,000</div>
+                        <div style="color: var(--gray); font-size: 0.95rem; font-weight: 500;">Starting Balance</div>
+                    </div>
+                    <div style="text-align: center; flex: 1; min-width: 150px;">
+                        <div style="font-size: 2.5rem; font-weight: bold; color: var(--dark-blue); margin-bottom: 0.5rem;">Virtual</div>
+                        <div style="color: var(--gray); font-size: 0.95rem; font-weight: 500;">Risk-Free Trading</div>
+                    </div>
+                    <div style="text-align: center; flex: 1; min-width: 150px;">
+                        <div style="font-size: 2.5rem; font-weight: bold; color: var(--dark-blue); margin-bottom: 0.5rem;">Compete</div>
+                        <div style="color: var(--gray); font-size: 0.95rem; font-weight: 500;">Weekly Leaderboard</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="features">
         <div class="feature">
             <h3>Real-time Prices</h3>
@@ -126,6 +156,10 @@
         <div class="feature">
             <h3>Risk-Free Learning</h3>
             <p>Practice trading strategies without risking real money. Perfect for beginners and experienced traders alike.</p>
+        </div>
+        <div class="feature">
+            <h3>Weekly Leaderboard</h3>
+            <p>Compete with other traders! See who has the best realized profit percentage each week and climb the ranks.</p>
         </div>
     </div>
 @endsection
