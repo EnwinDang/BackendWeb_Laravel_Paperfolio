@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Trade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -11,7 +12,13 @@ class ProfileController extends Controller
 {
     public function show(User $user)
     {
-        return view('profile.show', compact('user'));
+        // Fetch trades for the user, ordered by most recent first
+        $trades = Trade::where('user_id', $user->id)
+            ->with('asset')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('profile.show', compact('user', 'trades'));
     }
 
     public function edit()

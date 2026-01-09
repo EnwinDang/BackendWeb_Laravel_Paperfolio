@@ -26,4 +26,12 @@ class Asset extends Model
     {
         return $this->hasMany(Trade::class);
     }
+
+    /**
+     * Many-to-many relationship: Assets can be watched by multiple users
+     */
+    public function watchers()
+    {
+        return $this->belongsToMany(User::class, 'asset_user')->withTimestamps();
+    }
 }

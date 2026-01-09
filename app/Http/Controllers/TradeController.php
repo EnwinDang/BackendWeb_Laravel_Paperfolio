@@ -25,6 +25,16 @@ class TradeController extends Controller
 
         // Calculate coin amount based on dollar amount
         $dollarAmount = (float) $request->dollar_amount;
+        $user = Auth::user();
+        $availableCash = $user->getCashBalance();
+
+        // Check if user has enough cash
+        if ($dollarAmount > $availableCash) {
+            return back()->withErrors([
+                'error' => 'Insufficient funds. You have $' . number_format($availableCash, 2) . ' available. Each user starts with $1,000 and can only trade with that amount.'
+            ]);
+        }
+
         $coinAmount = $dollarAmount / $asset->price;
 
         Trade::create([

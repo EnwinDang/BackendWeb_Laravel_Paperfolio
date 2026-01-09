@@ -15,6 +15,14 @@ Route::get('/news', [\App\Http\Controllers\NewsController::class, 'index'])->nam
 Route::get('/faq', [\App\Http\Controllers\FaqController::class, 'index'])->name('faq.index');
 Route::get('/leaderboard', [\App\Http\Controllers\LeaderboardController::class, 'index'])->name('leaderboard.index');
 
+// Contact form - accessible to everyone (including non-logged-in users), except admins
+Route::get('/contact', [\App\Http\Controllers\ContactController::class, 'show'])->name('contact.show');
+Route::post('/contact', [\App\Http\Controllers\ContactController::class, 'submit'])->name('contact.submit');
+
+// Contact form - accessible to everyone (including non-logged-in users), except admins
+Route::get('/contact', [\App\Http\Controllers\ContactController::class, 'show'])->name('contact.show');
+Route::post('/contact', [\App\Http\Controllers\ContactController::class, 'submit'])->name('contact.submit');
+
 // Comment routes (authenticated users only)
 Route::middleware(['auth'])->group(function () {
     Route::post('/news/{news}/comments', [\App\Http\Controllers\NewsController::class, 'storeComment'])->name('news.comments.store');
@@ -42,9 +50,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/assets/{asset}/buy', [TradeController::class, 'buy'])->name('trades.buy');
     Route::post('/assets/{asset}/sell', [TradeController::class, 'sell'])->name('trades.sell');
     
-    // Contact form - only for regular users (not admins)
-    Route::get('/contact', [\App\Http\Controllers\ContactController::class, 'show'])->name('contact.show');
-    Route::post('/contact', [\App\Http\Controllers\ContactController::class, 'submit'])->name('contact.submit');
+    // Watchlist routes (only for regular users)
+    Route::post('/assets/{asset}/watchlist/add', [AssetController::class, 'addToWatchlist'])->name('assets.watchlist.add');
+    Route::post('/assets/{asset}/watchlist/remove', [AssetController::class, 'removeFromWatchlist'])->name('assets.watchlist.remove');
     
     // Messages - must come before /profile/{user} to avoid route conflicts
     Route::get('/messages', [\App\Http\Controllers\MessageController::class, 'index'])->name('messages.index');

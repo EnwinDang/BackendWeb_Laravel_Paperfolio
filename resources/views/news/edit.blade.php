@@ -16,6 +16,14 @@
             </div>
 
             <div class="form-group">
+                <label for="excerpt">Excerpt (Preview Text for Feed)</label>
+                <textarea id="excerpt" name="excerpt" rows="3" maxlength="500" placeholder="Write a compelling preview text that will appear on the news feed to entice users to click and read the full article...">{{ old('excerpt', $news->excerpt) }}</textarea>
+                <div style="font-size: 0.85rem; color: var(--gray); margin-top: 0.25rem;">
+                    <span id="excerpt-count">{{ strlen(old('excerpt', $news->excerpt ?? '')) }}</span> / 500 characters
+                </div>
+            </div>
+
+            <div class="form-group">
                 <label for="image">Image</label>
                 <input type="file" id="imageInput" accept="image/*">
                 <input type="hidden" id="image" name="image" value="">
@@ -248,6 +256,15 @@
                     });
             }
         });
+
+        // Character counter for excerpt
+        const excerptTextarea = document.getElementById('excerpt');
+        const excerptCount = document.getElementById('excerpt-count');
+        if (excerptTextarea && excerptCount) {
+            excerptTextarea.addEventListener('input', function() {
+                excerptCount.textContent = this.value.length;
+            });
+        }
     </script>
     
     <style>

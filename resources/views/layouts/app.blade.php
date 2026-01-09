@@ -276,17 +276,17 @@
         }
         .percent-btn {
             padding: 0.25rem 0.5rem;
-            font-size: 0.75rem;
-            background-color: var(--gray-light);
+            font-size: 0.7rem;
+            background-color: var(--white);
             border: 1px solid #cbd5e1;
-            border-radius: 4px;
+            border-radius: 3px;
             cursor: pointer;
-            transition: all 0.2s;
+            color: var(--gray-dark);
+            transition: border-color 0.2s;
         }
         .percent-btn:hover {
-            background-color: var(--dark-blue-light);
-            color: var(--white);
-            border-color: var(--dark-blue-light);
+            border-color: var(--dark-blue);
+            color: var(--dark-blue);
         }
         .trade-form {
             display: flex;
@@ -448,6 +448,8 @@
                     @if(!auth()->user()->is_admin)
                         <a href="{{ route('contact.show') }}">Contact</a>
                     @endif
+                @else
+                    <a href="{{ route('contact.show') }}">Contact</a>
                 @endauth
             </div>
             <div class="footer-copyright">

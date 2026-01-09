@@ -17,12 +17,20 @@ class AssetController extends Controller
         $assets = Asset::all();
         $assetsWithOwned = [];
 
+        $cashBalance = null;
+        $watchedAssetIds = [];
+        
         if (Auth::check() && !Auth::user()->is_admin) {
+            $user = Auth::user();
+            $cashBalance = $user->getCashBalance();
+            $watchedAssetIds = $user->watchedAssets()->pluck('assets.id')->toArray();
+            
             foreach ($assets as $asset) {
                 $ownedAmount = $this->getOwnedAmount(Auth::id(), $asset->id);
                 $assetsWithOwned[] = [
                     'asset' => $asset,
                     'owned' => $ownedAmount,
+                    'is_watched' => in_array($asset->id, $watchedAssetIds),
                 ];
             }
         } else {
@@ -30,11 +38,12 @@ class AssetController extends Controller
                 $assetsWithOwned[] = [
                     'asset' => $asset,
                     'owned' => 0,
+                    'is_watched' => false,
                 ];
             }
         }
 
-        return view('assets.index', compact('assetsWithOwned'));
+        return view('assets.index', compact('assetsWithOwned', 'cashBalance'));
     }
 
     private function getOwnedAmount(int $userId, int $assetId): float
@@ -171,5 +180,39 @@ class AssetController extends Controller
     {
         $asset->delete();
         return redirect()->route('assets.index')->with('success', 'Asset deleted successfully.');
+    }
+
+    /**
+     * Add asset to user's watchlist
+     */
+    public function addToWatchlist(Asset $asset)
+    {
+        if (!Auth::check() || Auth::user()->is_admin) {
+            abort(403, 'Only regular users can add assets to watchlist.');
+        }
+
+        $user = Auth::user();
+        
+        if (!$user->watchedAssets()->where('asset_id', $asset->id)->exists()) {
+            $user->watchedAssets()->attach($asset->id);
+            return back()->with('success', $asset->symbol . ' added to watchlist.');
+        }
+
+        return back()->with('info', $asset->symbol . ' is already in your watchlist.');
+    }
+
+    /**
+     * Remove asset from user's watchlist
+     */
+    public function removeFromWatchlist(Asset $asset)
+    {
+        if (!Auth::check() || Auth::user()->is_admin) {
+            abort(403, 'Only regular users can remove assets from watchlist.');
+        }
+
+        $user = Auth::user();
+        $user->watchedAssets()->detach($asset->id);
+
+        return back()->with('success', $asset->symbol . ' removed from watchlist.');
     }
 }

@@ -138,11 +138,11 @@
                     <div style="text-align: center; flex: 1; min-width: 150px;">
                         <div style="font-size: 2.5rem; font-weight: bold; color: var(--dark-blue); margin-bottom: 0.5rem;">Compete</div>
                         <div style="color: var(--gray); font-size: 0.95rem; font-weight: 500;">Weekly Leaderboard</div>
-                    </div>
+                </div>
                 </div>
             </div>
         </div>
-    </div>
+        </div>
 
     <div class="features">
         <div class="feature">

@@ -49,6 +49,7 @@ class NewsController extends Controller
 
         $request->validate([
             'title' => 'required|string|max:255',
+            'excerpt' => 'nullable|string|max:500',
             'image' => 'nullable|image|max:2048',
             'content' => 'required|string',
             'publication_date' => 'nullable|date',
@@ -70,6 +71,7 @@ class NewsController extends Controller
 
         $data = [
             'title' => $request->title,
+            'excerpt' => $request->excerpt,
             'content' => $request->content,
             'publication_date' => $publicationDate,
         ];
@@ -100,6 +102,7 @@ class NewsController extends Controller
 
         $request->validate([
             'title' => 'required|string|max:255',
+            'excerpt' => 'nullable|string|max:500',
             'image' => 'nullable|image|max:2048',
             'content' => 'required|string',
             'publication_date' => 'nullable|date',
@@ -118,6 +121,7 @@ class NewsController extends Controller
 
         $data = [
             'title' => $request->title,
+            'excerpt' => $request->excerpt,
             'content' => $request->content,
             'publication_date' => $publicationDate,
         ];

@@ -5,6 +5,18 @@
 @section('content')
     <h1>My Portfolio</h1>
 
+    <div class="card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid var(--dark-blue); margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h2 style="margin: 0; color: var(--dark-blue);">Available Cash</h2>
+                <p style="margin: 0.5rem 0 0 0; color: var(--gray); font-size: 0.9rem;">Starting balance: $1,000.00</p>
+            </div>
+            <div style="font-size: 2rem; font-weight: bold; color: var(--dark-blue);">
+                ${{ number_format($cashBalance, 2) }}
+            </div>
+        </div>
+    </div>
+
     @if(count($portfolio) > 0)
         <div class="card" style="margin-bottom: 1.5rem;">
             <h2>Profit & Loss Summary</h2>

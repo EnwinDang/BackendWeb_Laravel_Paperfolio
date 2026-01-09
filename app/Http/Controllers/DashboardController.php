@@ -25,12 +25,14 @@ class DashboardController extends Controller
         $assets = Asset::all();
         $portfolio = [];
         $assetsWithOwned = [];
+        $watchedAssetIds = $user->watchedAssets()->pluck('assets.id')->toArray();
 
         foreach ($assets as $asset) {
             $ownedAmount = $this->getOwnedAmount($user->id, $asset->id);
             $assetsWithOwned[] = [
                 'asset' => $asset,
                 'owned' => $ownedAmount,
+                'is_watched' => in_array($asset->id, $watchedAssetIds),
             ];
             
             if ($ownedAmount > 0) {
@@ -41,7 +43,10 @@ class DashboardController extends Controller
             }
         }
 
-        return view('dashboard', compact('trades', 'portfolio', 'assetsWithOwned'));
+        $cashBalance = $user->getCashBalance();
+        $watchedAssets = $user->watchedAssets()->get();
+
+        return view('dashboard', compact('trades', 'portfolio', 'assetsWithOwned', 'cashBalance', 'watchedAssets'));
     }
 
     private function getOwnedAmount(int $userId, int $assetId): float

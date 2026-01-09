@@ -94,13 +94,58 @@ class MessageController extends Controller
             ->orderBy('created_at', 'asc')
             ->get();
         
+        // Group messages by date
+        $messagesByDate = $messages->groupBy(function($message) {
+            return $message->created_at->format('Y-m-d');
+        });
+        
         // Mark messages as read
         Message::where('sender_id', $user->id)
             ->where('recipient_id', $currentUser->id)
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
         
-        return view('messages.show', compact('user', 'messages'));
+        // Get conversations for sidebar
+        $allMessages = Message::where(function($query) use ($currentUser) {
+                $query->where('sender_id', $currentUser->id)
+                      ->orWhere('recipient_id', $currentUser->id);
+            })
+            ->with(['sender', 'recipient'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        $conversationsMap = [];
+        foreach ($allMessages as $message) {
+            $otherUser = $message->sender_id === $currentUser->id 
+                ? $message->recipient 
+                : $message->sender;
+            
+            if (!$otherUser || $otherUser->is_admin) {
+                continue;
+            }
+            
+            $otherUserId = $otherUser->id;
+            
+            if (!isset($conversationsMap[$otherUserId])) {
+                $conversationsMap[$otherUserId] = [
+                    'user' => $otherUser,
+                    'last_message' => $message,
+                ];
+            }
+        }
+        
+        $conversations = collect($conversationsMap)->map(function($conversation) use ($currentUser) {
+            $otherUser = $conversation['user'];
+            $conversation['unread_count'] = Message::where('sender_id', $otherUser->id)
+                ->where('recipient_id', $currentUser->id)
+                ->whereNull('read_at')
+                ->count();
+            return $conversation;
+        })->sortByDesc(function($conversation) {
+            return $conversation['last_message']->created_at;
+        })->values();
+        
+        return view('messages.show', compact('user', 'messages', 'messagesByDate', 'conversations'));
     }
 
     public function store(Request $request, User $user)

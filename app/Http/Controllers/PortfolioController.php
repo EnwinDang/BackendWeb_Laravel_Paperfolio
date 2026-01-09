@@ -107,6 +107,8 @@ class PortfolioController extends Controller
         $totalInvested = $totalInvestedAll > 0 ? $totalInvestedAll : $totalInvestedCurrent;
         $totalProfitPercent = $totalInvested > 0 ? ($totalProfit / $totalInvested) * 100 : 0;
 
+        $cashBalance = $user->getCashBalance();
+
         return view('portfolio.index', compact(
             'portfolio', 
             'totalPortfolioValue', 
@@ -115,7 +117,8 @@ class PortfolioController extends Controller
             'totalUnrealizedProfit',
             'totalRealizedProfit',
             'totalProfit',
-            'totalProfitPercent'
+            'totalProfitPercent',
+            'cashBalance'
         ));
     }
 }

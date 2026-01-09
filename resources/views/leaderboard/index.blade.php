@@ -103,7 +103,8 @@
 
         <div class="card" style="background: var(--gray-light); padding: 1rem;">
             <p style="margin: 0; font-size: 0.875rem; color: var(--gray);">
-                <strong>Note:</strong> Leaderboard is based on realized profit percentage from closed positions (sell trades) during the selected week. 
+                <strong>Note:</strong> Leaderboard is based on realized profit percentage from closed positions (sell trades) during the selected week.
+                 <br>
                 Only users who made sell trades during the week are shown.
             </p>
         </div>

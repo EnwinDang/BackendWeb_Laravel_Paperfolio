@@ -58,4 +58,51 @@
             @endauth
         @endif
     </div>
+
+    {{-- Trades Section --}}
+    <div class="card" style="margin-top: 2rem;">
+        <h2 style="margin-bottom: 1rem; color: var(--dark-blue);">Trading History</h2>
+        
+        @guest
+            {{-- Not logged in: show message to log in --}}
+            <div style="text-align: center; padding: 2rem; color: var(--gray);">
+                <p style="margin-bottom: 1rem;">Log in to view user trades</p>
+                <a href="{{ route('login') }}" class="btn btn-primary">Log In</a>
+            </div>
+        @else
+            {{-- Show trades for logged-in users (own profile, other users, or admin) --}}
+            @if($trades->count() > 0)
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Asset</th>
+                            <th>Amount</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($trades as $trade)
+                            <tr>
+                                <td>{{ $trade->created_at->format('Y-m-d H:i') }}</td>
+                                <td>
+                                    <strong style="color: {{ $trade->type === 'buy' ? 'var(--success)' : 'var(--error)' }}">
+                                        {{ strtoupper($trade->type) }}
+                                    </strong>
+                                </td>
+                                <td>{{ $trade->asset->symbol }}</td>
+                                <td class="price">{{ number_format($trade->amount, 8) }}</td>
+                                <td class="price">${{ number_format($trade->price_snapshot, 2) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @else
+                <div class="empty">
+                    <p>No trades yet.</p>
+                </div>
+            @endif
+        @endguest
+    </div>
 @endsection
