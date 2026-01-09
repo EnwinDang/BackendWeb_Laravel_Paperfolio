@@ -107,7 +107,7 @@ A Laravel-based paper trading application for practicing cryptocurrency trading 
   - Content
   - Publication date
 
-### ❓ FAQ System
+###  FAQ System
 - Public FAQ page
 - Questions grouped by categories
 - Admin can:
@@ -115,13 +115,13 @@ A Laravel-based paper trading application for practicing cryptocurrency trading 
   - Create, edit, delete questions and answers
 - FAQ visible to all visitors
 
-### 📩 Contact System
+###  Contact System
 - Public contact form (accessible to all visitors)
 - Any visitor can submit the form
 - Admin receives email notification with message contents
 - Admin can view, respond to, and manage submissions
 
-### 💰 Paper Trading System (Extra Feature)
+### Paper Trading System (Extra Feature)
 - Users start with $1,000 virtual cash
 - Buy and sell cryptocurrency assets
 - Real-time price updates from CoinGecko API
@@ -130,12 +130,12 @@ A Laravel-based paper trading application for practicing cryptocurrency trading 
 - Leaderboard based on realized profit percentage
 - Watchlist: Users can add assets to their watchlist to track them
 
-### 💬 Messaging System (Extra Feature)
+### Messaging System (Extra Feature)
 - Private messaging between users
 - Chat-style interface
 - Message history
 
-### 📊 Leaderboard (Extra Feature)
+### Leaderboard (Extra Feature)
 - Shows best traders based on realized profit percentage
 - Weekly rankings
 
@@ -291,15 +291,15 @@ APP_URL=https://yourdomain.com
 
 After running `php artisan migrate:fresh --seed`, you should be able to:
 
-1. ✅ Log in as admin (admin@ehb.be / Password!321)
-2. ✅ View and manage users
-3. ✅ Create, edit, and delete news items
-4. ✅ Manage FAQ categories and items
-5. ✅ View contact submissions
-6. ✅ View public profiles
-7. ✅ Test contact form (as non-admin user)
-8. ✅ Use all extra features (trading, messaging, leaderboard)
-9. ✅ Navigate without errors
+1.  Log in as admin (admin@ehb.be / Password!321)
+2.  View and manage users
+3.  Create, edit, and delete news items
+4.  Manage FAQ categories and items
+5.  View contact submissions
+6.  View public profiles
+7.  Test contact form (as non-admin user)
+8.  Use all extra features (trading, messaging, leaderboard)
+9.  Navigate without errors
 
 ### Testing Password Reset
 
