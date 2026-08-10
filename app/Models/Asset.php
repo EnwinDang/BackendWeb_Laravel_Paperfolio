@@ -11,6 +11,7 @@ class Asset extends Model
         'symbol',
         'coingecko_id',
         'price',
+        'price_change_24h',
         'price_last_updated_at',
     ];
 
@@ -18,6 +19,7 @@ class Asset extends Model
     {
         return [
             'price' => 'decimal:8',
+            'price_change_24h' => 'decimal:4',
             'price_last_updated_at' => 'datetime',
         ];
     }
@@ -25,6 +27,11 @@ class Asset extends Model
     public function trades()
     {
         return $this->hasMany(Trade::class);
+    }
+
+    public function positions()
+    {
+        return $this->hasMany(Position::class);
     }
 
     /**

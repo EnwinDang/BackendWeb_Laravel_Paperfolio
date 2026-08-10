@@ -2,22 +2,19 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AssetController;
+use App\Http\Controllers\PositionController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\TradeController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\HomeController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Public routes
 Route::get('/news', [\App\Http\Controllers\NewsController::class, 'index'])->name('news.index');
 Route::get('/faq', [\App\Http\Controllers\FaqController::class, 'index'])->name('faq.index');
 Route::get('/leaderboard', [\App\Http\Controllers\LeaderboardController::class, 'index'])->name('leaderboard.index');
-
-// Contact form - accessible to everyone (including non-logged-in users), except admins
-Route::get('/contact', [\App\Http\Controllers\ContactController::class, 'show'])->name('contact.show');
-Route::post('/contact', [\App\Http\Controllers\ContactController::class, 'submit'])->name('contact.submit');
 
 // Contact form - accessible to everyone (including non-logged-in users), except admins
 Route::get('/contact', [\App\Http\Controllers\ContactController::class, 'show'])->name('contact.show');
@@ -46,14 +43,27 @@ Route::post('/password/reset', [\App\Http\Controllers\Auth\ResetPasswordControll
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/portfolio', [\App\Http\Controllers\PortfolioController::class, 'index'])->name('portfolio.index');
+    Route::post('/portfolio/restart', [\App\Http\Controllers\PortfolioController::class, 'restart'])->name('portfolio.restart');
+
     Route::get('/assets', [AssetController::class, 'index'])->name('assets.index');
     Route::post('/assets/{asset}/buy', [TradeController::class, 'buy'])->name('trades.buy');
     Route::post('/assets/{asset}/sell', [TradeController::class, 'sell'])->name('trades.sell');
-    
+
+    // Leveraged positions
+    Route::post('/assets/{asset}/positions/open', [PositionController::class, 'open'])->name('positions.open');
+    Route::post('/positions/{position}/close', [PositionController::class, 'close'])->name('positions.close');
+
     // Watchlist routes (only for regular users)
     Route::post('/assets/{asset}/watchlist/add', [AssetController::class, 'addToWatchlist'])->name('assets.watchlist.add');
     Route::post('/assets/{asset}/watchlist/remove', [AssetController::class, 'removeFromWatchlist'])->name('assets.watchlist.remove');
-    
+
+    // Social feed
+    Route::get('/feed', [PostController::class, 'index'])->name('feed.index');
+    Route::post('/feed', [PostController::class, 'store'])->name('feed.store');
+    Route::post('/feed/{post}/like', [PostController::class, 'like'])->name('feed.like');
+    Route::post('/feed/{post}/unlike', [PostController::class, 'unlike'])->name('feed.unlike');
+    Route::delete('/feed/{post}', [PostController::class, 'destroy'])->name('feed.destroy');
+
     // Messages - must come before /profile/{user} to avoid route conflicts
     Route::get('/messages', [\App\Http\Controllers\MessageController::class, 'index'])->name('messages.index');
     Route::get('/messages/{user}', [\App\Http\Controllers\MessageController::class, 'show'])->name('messages.show');
@@ -111,3 +121,8 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
 // Public route for showing news - must come AFTER /news/create to avoid route conflicts
 Route::get('/news/{news}', [\App\Http\Controllers\NewsController::class, 'show'])->name('news.show');
+
+// Asset trading terminal - must come AFTER /assets/create and /assets/{asset}/edit to avoid route conflicts
+Route::middleware(['auth'])->group(function () {
+    Route::get('/assets/{asset}', [AssetController::class, 'show'])->name('assets.show');
+});

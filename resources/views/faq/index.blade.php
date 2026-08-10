@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends(auth()->check() ? (auth()->user()->is_admin ? 'layouts.app' : 'layouts.dashboard') : 'layouts.marketing')
 
 @section('title', 'FAQ')
 

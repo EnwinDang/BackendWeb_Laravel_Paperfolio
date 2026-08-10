@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.dashboard')
 
 @section('title', 'Messages')
 
@@ -25,22 +25,20 @@
     }
     .conversation-item {
         background: var(--white);
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
+        border: 2px solid var(--ink);
         padding: 1.25rem;
-        transition: all 0.2s ease;
+        transition: transform 0.08s;
         text-decoration: none;
         color: inherit;
         display: block;
+        box-shadow: 3px 3px 0 var(--ink);
     }
     .conversation-item:hover {
-        border-color: var(--dark-blue-light);
-        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.1);
-        transform: translateY(-2px);
+        transform: translate(-1px, -1px);
+        box-shadow: 4px 4px 0 var(--ink);
     }
     .conversation-item.unread {
-        background: #eff6ff;
-        border-color: var(--dark-blue-light);
+        background: var(--accent-dim);
         border-width: 2px;
     }
     .conversation-content {
@@ -52,22 +50,20 @@
         flex-shrink: 0;
         width: 56px;
         height: 56px;
-        border-radius: 50%;
         object-fit: cover;
-        border: 2px solid #e2e8f0;
+        border: 2px solid var(--ink);
     }
     .conversation-avatar-placeholder {
         width: 56px;
         height: 56px;
-        border-radius: 50%;
-        background: var(--dark-blue);
-        color: var(--white);
+        background: var(--accent);
+        color: var(--ink);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: 700;
+        font-weight: 800;
         font-size: 1.25rem;
-        border: 2px solid #e2e8f0;
+        border: 2px solid var(--ink);
     }
     .conversation-details {
         flex: 1;

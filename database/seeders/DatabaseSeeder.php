@@ -13,6 +13,7 @@ use App\Models\ContactSubmission;
 use App\Models\Message;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
@@ -80,6 +81,12 @@ class DatabaseSeeder extends Seeder
         foreach ($coins as $coin) {
             $assets[] = Asset::create($coin);
         }
+
+        // Populate live prices immediately, so the app has real price/24h-change
+        // data right after seeding without depending on the scheduler being active.
+        // Safe to call even without internet access: the command catches its own
+        // failures internally and leaves prices null rather than throwing.
+        Artisan::call('assets:update-prices');
 
         $btc = $assets[0]; // Bitcoin
         $eth = $assets[1]; // Ethereum
@@ -195,8 +202,8 @@ class DatabaseSeeder extends Seeder
         // FAQ Items
         FaqItem::create([
             'faq_category_id' => $gettingStarted->id,
-            'question' => 'What is CryptoHub?',
-            'answer' => 'CryptoHub is a paper trading platform where you can practice cryptocurrency trading with virtual money. All users start with $1,000 and can buy and sell various cryptocurrencies to test their trading strategies.',
+            'question' => 'What is PaperFolio?',
+            'answer' => 'PaperFolio is a paper trading platform where you can practice cryptocurrency trading with virtual money. All users start with $1,000 and can buy and sell various cryptocurrencies to test their trading strategies.',
             'order' => 1,
         ]);
 
@@ -259,54 +266,40 @@ class DatabaseSeeder extends Seeder
         };
 
         $news1 = News::create([
-            'title' => 'Bitcoin Reaches New All-Time High',
-            'excerpt' => 'Bitcoin has surged past $90,000, marking a significant milestone in the cryptocurrency market. Analysts predict continued growth as institutional adoption increases.',
+            'title' => 'Leverage Trading is Now Live',
+            'excerpt' => 'Go long or short on any asset at 5x, 10x, or 100x leverage. A simplified liquidation model means you can only ever lose your margin — never more.',
             'image' => $copyPublicImage('BTC-ATH.jpg', 'bitcoin-ath-seeded.jpg'),
-            'content' => 'Bitcoin has reached a new all-time high, breaking through the $90,000 barrier for the first time in its history. This milestone comes as institutional investors continue to show strong interest in the leading cryptocurrency.
+            'content' => 'You can now open leveraged positions directly from any asset\'s trading terminal.
 
-The price surge has been attributed to several factors, including increased adoption by major corporations, favorable regulatory developments, and growing acceptance of Bitcoin as a store of value.
+Pick a direction (long or short), choose 5x, 10x, or 100x leverage, and set how much of your virtual cash you want to put up as margin. Your position\'s profit or loss moves with the market price, multiplied by your leverage.
 
-Market analysts are optimistic about the future, with many predicting that Bitcoin could reach even higher levels in the coming months. However, they also caution investors to be aware of the inherent volatility in cryptocurrency markets.
+We kept the liquidation model simple on purpose: if a position\'s losses reach 100% of its margin, it gets automatically closed the next time prices refresh. You can never lose more than the margin you put into that position — your remaining cash balance is always safe.
 
-"Bitcoin\'s recent performance demonstrates the growing maturity of the cryptocurrency market," said one industry expert. "While we\'re seeing strong momentum, it\'s important for investors to do their own research and invest responsibly."
-
-The cryptocurrency market as a whole has been experiencing significant growth, with many altcoins also seeing substantial gains. Ethereum, the second-largest cryptocurrency, has also been performing well, reaching new highs of its own.
-
-As the market continues to evolve, experts recommend that investors stay informed about market trends and regulatory developments that could impact cryptocurrency prices.',
+Head to any asset\'s page and switch to the "Leverage" tab on the trade panel to try it out.',
             'publication_date' => Carbon::now()->subDays(2),
         ]);
 
         $news2 = News::create([
-            'title' => 'Ethereum 2.0 Staking Reaches New Milestone',
-            'excerpt' => 'Over 30 million ETH are now staked in Ethereum 2.0, representing a major step forward for the network\'s transition to proof-of-stake consensus.',
+            'title' => 'Introducing the Social Feed',
+            'excerpt' => 'Post your trade calls, like other traders\' posts, and use $cashtags to link straight to an asset\'s chart. Trading is more fun with company.',
             'image' => $copyPublicImage('ethereum-staking.png', 'ethereum-staking-seeded.png'),
-            'content' => 'Ethereum 2.0 has reached a significant milestone with over 30 million ETH now staked in the network. This represents approximately 25% of the total Ethereum supply and demonstrates strong community support for the network\'s transition to a proof-of-stake consensus mechanism.
+            'content' => 'PaperFolio now has a Feed where you can share what you\'re trading and why.
 
-The transition to Ethereum 2.0 is one of the most anticipated upgrades in the cryptocurrency space. It promises to improve the network\'s scalability, security, and energy efficiency.
+Write a post and mention any tradable asset with a $cashtag, like $BTC or $SOL — it automatically becomes a clickable link that takes other traders straight to that asset\'s live chart and trade panel. Like posts you agree with, and check any asset\'s page to see every post that mentions it.
 
-Staking allows ETH holders to earn rewards by locking their tokens to help secure the network. The current annual percentage yield (APY) for staking is approximately 4-5%, making it an attractive option for long-term holders.
-
-"The growing amount of staked ETH shows that the community is confident in Ethereum\'s future," said a blockchain researcher. "This is a positive sign for the network\'s long-term sustainability."
-
-The Ethereum 2.0 upgrade is being rolled out in phases, with the final phase expected to be completed in the coming years. Once fully implemented, the network should be able to process significantly more transactions per second while using less energy.',
+This is entirely optional — your trades stay yours to make either way — but it\'s a good way to see what the rest of the community is watching.',
             'publication_date' => Carbon::now()->subDays(5),
         ]);
 
         $news3 = News::create([
-            'title' => 'Solana Network Sees Record Transaction Volume',
-            'excerpt' => 'Solana has processed over 50 billion transactions, showcasing its high-performance blockchain capabilities and growing ecosystem.',
+            'title' => 'New Asset Added: Solana (SOL)',
+            'excerpt' => 'Solana is now tradable on PaperFolio, alongside Bitcoin, Ethereum, and the rest of our supported assets.',
             'image' => $copyPublicImage('-1x-1.webp', 'solana-logo-seeded.webp'),
-            'content' => 'The Solana blockchain has achieved a new record, processing over 50 billion transactions since its launch. This milestone highlights the network\'s ability to handle high transaction volumes at low costs.
+            'content' => 'Solana (SOL) has been added to the list of assets you can trade on PaperFolio, with live pricing refreshed automatically from CoinGecko every 5 minutes.
 
-Solana has gained significant attention in the cryptocurrency space due to its high throughput and low transaction fees. The network can process thousands of transactions per second, making it attractive for decentralized applications (dApps) and DeFi protocols.
+You can buy and sell it with your virtual cash, add it to your watchlist, or open a leveraged long/short position on it, just like any other supported asset.
 
-"The Solana network\'s performance demonstrates the potential of next-generation blockchain technology," commented a DeFi analyst. "Its ability to scale while maintaining low costs is a significant advantage."
-
-The Solana ecosystem has been growing rapidly, with numerous projects launching on the network. These include decentralized exchanges, NFT marketplaces, gaming platforms, and various DeFi applications.
-
-Despite its success, Solana has faced some challenges, including network outages. However, the development team has been working to improve the network\'s stability and reliability.
-
-As the cryptocurrency market continues to evolve, Solana remains one of the most promising blockchain networks, with many experts predicting continued growth in its ecosystem and adoption.',
+Have a suggestion for another asset we should add? Let us know through the contact page.',
             'publication_date' => Carbon::now()->subDays(8),
         ]);
 
@@ -314,21 +307,21 @@ As the cryptocurrency market continues to evolve, Solana remains one of the most
         NewsComment::create([
             'news_id' => $news1->id,
             'user_id' => $user1->id,
-            'content' => 'This is great news! I\'ve been holding Bitcoin for a while now, and it\'s exciting to see it reach new heights.',
+            'content' => 'Finally! Been waiting to try shorting without risking real money. The margin-only-loss thing is a nice safety net.',
             'created_at' => Carbon::now()->subDays(1),
         ]);
 
         NewsComment::create([
             'news_id' => $news1->id,
             'user_id' => $user2->id,
-            'content' => 'I\'m curious to see how this will affect the broader market. Altcoins might follow suit!',
+            'content' => 'Tried 100x on a whim, got liquidated in about 10 minutes. Good lesson to learn with fake money instead of real.',
             'created_at' => Carbon::now()->subHours(12),
         ]);
 
         NewsComment::create([
             'news_id' => $news2->id,
             'user_id' => $user1->id,
-            'content' => 'I\'ve been staking my ETH for months now. The rewards are decent, and I\'m supporting the network!',
+            'content' => 'Love the $cashtag links, makes it so easy to jump from a post straight into the chart.',
             'created_at' => Carbon::now()->subDays(4),
         ]);
 

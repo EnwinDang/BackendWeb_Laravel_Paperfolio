@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ContactSubmission;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class ContactController extends Controller
@@ -42,20 +43,25 @@ class ContactController extends Controller
             'read' => false,
         ]);
 
-        // Send email to all admins
-        $admins = User::where('is_admin', true)->get();
+        // Send email to all admins. The submission is already saved above, so a
+        // broken/unconfigured mail setup shouldn't fail the whole request.
+        try {
+            $admins = User::where('is_admin', true)->get();
 
-        foreach ($admins as $admin) {
-            Mail::raw(
-                "Name: {$request->name}\n" .
-                "Email: {$request->email}\n" .
-                "Subject: {$request->subject}\n\n" .
-                "Message:\n{$request->message}",
-                function ($message) use ($admin, $request) {
-                    $message->to($admin->email)
-                        ->subject('Contact Form: ' . $request->subject);
-                }
-            );
+            foreach ($admins as $admin) {
+                Mail::raw(
+                    "Name: {$request->name}\n" .
+                    "Email: {$request->email}\n" .
+                    "Subject: {$request->subject}\n\n" .
+                    "Message:\n{$request->message}",
+                    function ($message) use ($admin, $request) {
+                        $message->to($admin->email)
+                            ->subject('Contact Form: ' . $request->subject);
+                    }
+                );
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send contact form notification email: ' . $e->getMessage());
         }
 
         return redirect()->route('contact.show')->with('success', 'Your message has been sent successfully.');
@@ -106,26 +112,31 @@ class ContactController extends Controller
             'responded_at' => now(),
         ]);
 
-        // Send email to the user
-        Mail::raw(
-            "Hello {$contactSubmission->name},\n\n" .
-            "Thank you for contacting us. Here is our response to your inquiry:\n\n" .
-            "---\n" .
-            "Your original message:\n" .
-            "Subject: {$contactSubmission->subject}\n\n" .
-            "{$contactSubmission->message}\n\n" .
-            "---\n\n" .
-            "Our response:\n" .
-            "{$request->admin_response}\n\n" .
-            "---\n\n" .
-            "If you have any further questions, please don't hesitate to contact us again.\n\n" .
-            "Best regards,\n" .
-            config('app.name', 'CryptoHub Team'),
-            function ($message) use ($contactSubmission) {
-                $message->to($contactSubmission->email)
-                    ->subject('Re: ' . $contactSubmission->subject);
-            }
-        );
+        // Send email to the user. The response is already saved above, so a
+        // broken/unconfigured mail setup shouldn't fail the whole request.
+        try {
+            Mail::raw(
+                "Hello {$contactSubmission->name},\n\n" .
+                "Thank you for contacting us. Here is our response to your inquiry:\n\n" .
+                "---\n" .
+                "Your original message:\n" .
+                "Subject: {$contactSubmission->subject}\n\n" .
+                "{$contactSubmission->message}\n\n" .
+                "---\n\n" .
+                "Our response:\n" .
+                "{$request->admin_response}\n\n" .
+                "---\n\n" .
+                "If you have any further questions, please don't hesitate to contact us again.\n\n" .
+                "Best regards,\n" .
+                config('app.name', 'PaperFolio Team'),
+                function ($message) use ($contactSubmission) {
+                    $message->to($contactSubmission->email)
+                        ->subject('Re: ' . $contactSubmission->subject);
+                }
+            );
+        } catch (\Exception $e) {
+            Log::error('Failed to send contact form response email: ' . $e->getMessage());
+        }
 
         return redirect()->route('contact.show-submission', $contactSubmission)
             ->with('success', 'Response sent successfully to ' . $contactSubmission->email . '.');

@@ -45,8 +45,9 @@ class DashboardController extends Controller
 
         $cashBalance = $user->getCashBalance();
         $watchedAssets = $user->watchedAssets()->get();
+        $openPositions = $user->positions()->where('status', 'open')->with('asset')->get();
 
-        return view('dashboard', compact('trades', 'portfolio', 'assetsWithOwned', 'cashBalance', 'watchedAssets'));
+        return view('dashboard', compact('trades', 'portfolio', 'assetsWithOwned', 'cashBalance', 'watchedAssets', 'openPositions'));
     }
 
     private function getOwnedAmount(int $userId, int $assetId): float

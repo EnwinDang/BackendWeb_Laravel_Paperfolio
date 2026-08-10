@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.dashboard')
 
 @section('title', 'Conversation with ' . $user->getDisplayName())
 
@@ -10,13 +10,13 @@
         gap: 0;
         height: calc(100vh - 200px);
         min-height: 600px;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
+        border: 2px solid var(--ink);
+        box-shadow: 4px 4px 0 var(--ink);
         overflow: hidden;
         background: var(--white);
     }
     .conversations-sidebar {
-        border-right: 1px solid #e2e8f0;
+        border-right: 2px solid var(--ink);
         background: var(--gray-light);
         display: flex;
         flex-direction: column;
@@ -45,7 +45,7 @@
         background: transparent;
     }
     .conversations-list::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
+        background: var(--gray);
         border-radius: 3px;
     }
     .conversation-item {
@@ -67,7 +67,7 @@
         border: 1px solid var(--dark-blue-light);
     }
     .conversation-item.unread {
-        background: #eff6ff;
+        background: var(--accent-dim);
     }
     .conversation-avatar {
         width: 48px;
@@ -186,7 +186,7 @@
         background: transparent;
     }
     .messages-area::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
+        background: var(--gray);
         border-radius: 4px;
     }
     .messages-area::-webkit-scrollbar-thumb:hover {
@@ -244,7 +244,7 @@
         max-width: 100%;
     }
     .message-item.received .message-content {
-        background: #f1f5f9;
+        background: var(--gray-light);
         color: var(--gray-dark);
         border-bottom-left-radius: 4px;
     }

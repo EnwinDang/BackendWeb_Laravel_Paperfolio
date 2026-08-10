@@ -27,6 +27,9 @@ class User extends Authenticatable
         'date_of_birth',
         'profile_picture',
         'about_me',
+        'show_portfolio',
+        'show_age',
+        'show_email',
     ];
 
     /**
@@ -51,12 +54,38 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_admin' => 'boolean',
             'date_of_birth' => 'date',
+            'show_portfolio' => 'boolean',
+            'show_age' => 'boolean',
+            'show_email' => 'boolean',
         ];
+    }
+
+    /**
+     * Whether $viewer is allowed to see this user's portfolio/trading history.
+     * Owners and admins can always see it; other users only if the flag is on.
+     */
+    public function portfolioVisibleTo(?User $viewer): bool
+    {
+        if ($viewer && ($viewer->id === $this->id || $viewer->is_admin)) {
+            return true;
+        }
+
+        return $this->show_portfolio;
     }
 
     public function trades()
     {
         return $this->hasMany(Trade::class);
+    }
+
+    public function positions()
+    {
+        return $this->hasMany(Position::class);
+    }
+
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
     }
 
     public function newsComments()
@@ -108,7 +137,7 @@ class User extends Authenticatable
     public function getCashBalance(): float
     {
         $initialBalance = 1000.0;
-        
+
         // Calculate total spent on buy trades
         $totalSpent = $this->trades()
             ->where('type', 'buy')
@@ -116,7 +145,7 @@ class User extends Authenticatable
             ->sum(function ($trade) {
                 return $trade->amount * $trade->price_snapshot;
             });
-        
+
         // Calculate total received from sell trades
         $totalReceived = $this->trades()
             ->where('type', 'sell')
@@ -124,10 +153,53 @@ class User extends Authenticatable
             ->sum(function ($trade) {
                 return $trade->amount * $trade->price_snapshot;
             });
-        
-        // Available cash = initial balance - spent + received
-        $availableCash = $initialBalance - $totalSpent + $totalReceived;
-        
+
+        // Margin currently locked in open leveraged positions is unavailable
+        $lockedMargin = $this->positions()
+            ->where('status', 'open')
+            ->sum('margin_usd');
+
+        // Closed/liquidated positions: margin is no longer locked (it's excluded above),
+        // so only the realized P/L needs to be applied. Position::unrealizedPnl() already
+        // floors losses at -margin_usd, so this can never push balance negative.
+        $realizedFromClosedPositions = $this->positions()
+            ->whereIn('status', ['closed', 'liquidated'])
+            ->sum('realized_pnl');
+
+        // Available cash = initial balance - spent + received - locked margin + realized P/L
+        $availableCash = $initialBalance - $totalSpent + $totalReceived - $lockedMargin + $realizedFromClosedPositions;
+
         return max(0, round($availableCash, 2));
+    }
+
+    /**
+     * Total account value in USD: available cash + current value of spot holdings
+     * + current value (margin + unrealized P/L) of open leveraged positions.
+     */
+    public function getTotalPortfolioValue(): float
+    {
+        $total = $this->getCashBalance();
+
+        $ownedByAsset = [];
+        foreach ($this->trades as $trade) {
+            $sign = $trade->type === 'buy' ? 1 : -1;
+            $ownedByAsset[$trade->asset_id] = ($ownedByAsset[$trade->asset_id] ?? 0) + $sign * (float) $trade->amount;
+        }
+
+        foreach ($this->trades->pluck('asset')->unique('id') as $asset) {
+            $owned = $ownedByAsset[$asset->id] ?? 0;
+            if ($owned > 0 && $asset->price) {
+                $total += $owned * (float) $asset->price;
+            }
+        }
+
+        foreach ($this->positions()->where('status', 'open')->with('asset')->get() as $position) {
+            $total += (float) $position->margin_usd;
+            if ($position->asset->price) {
+                $total += $position->unrealizedPnl((float) $position->asset->price);
+            }
+        }
+
+        return max(0, round($total, 2));
     }
 }

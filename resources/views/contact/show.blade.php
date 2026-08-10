@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends(auth()->check() ? 'layouts.dashboard' : 'layouts.app')
 
 @section('title', 'Contact Us')
 

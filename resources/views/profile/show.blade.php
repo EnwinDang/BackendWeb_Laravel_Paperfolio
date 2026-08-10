@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends(!auth()->check() || auth()->user()->is_admin ? 'layouts.app' : 'layouts.dashboard')
 
 @section('title', $user->getDisplayName() . ' - Profile')
 
@@ -16,10 +16,12 @@
             </div>
             <div style="flex: 1; min-width: 200px;">
                 <h1 style="margin: 0 0 0.5rem 0; color: var(--dark-blue);">{{ $user->getDisplayName() }}</h1>
-                <p style="color: var(--gray); margin-bottom: 0.75rem; font-size: 0.95rem;">
-                    <strong>Email:</strong> {{ $user->email }}
-                </p>
-                @if($user->date_of_birth)
+                @if(Auth::id() === $user->id || auth()->check() && auth()->user()->is_admin || $user->show_email)
+                    <p style="color: var(--gray); margin-bottom: 0.75rem; font-size: 0.95rem;">
+                        <strong>Email:</strong> {{ $user->email }}
+                    </p>
+                @endif
+                @if($user->date_of_birth && (Auth::id() === $user->id || auth()->check() && auth()->user()->is_admin || $user->show_age))
                     <p style="color: var(--gray); margin-bottom: 0.75rem; font-size: 0.95rem;">
                         <strong>Date of Birth:</strong> {{ $user->date_of_birth->format('F j, Y') }}
                         @php
@@ -28,6 +30,20 @@
                         <span style="color: var(--gray);">({{ $age }} {{ Str::plural('year', $age) }} old)</span>
                     </p>
                 @endif
+                @if($portfolioValue !== null)
+                    <div style="display: inline-block; padding: 0.5rem 1rem; background: var(--gray-light); border-radius: 6px; margin-bottom: 0.75rem;">
+                        <span style="color: var(--gray); font-size: 0.85rem;">Portfolio Value:</span>
+                        <strong style="color: var(--dark-blue); font-size: 1.15rem; margin-left: 0.25rem;">${{ number_format($portfolioValue, 2) }}</strong>
+                    </div>
+                @endif
+                <p style="color: var(--gray); margin-bottom: 0.75rem; font-size: 0.95rem;">
+                    <strong>Trading:</strong>
+                    @if($firstTradeAt)
+                        Since {{ $firstTradeAt->format('F Y') }} ({{ $firstTradeAt->diffForHumans(null, true) }})
+                    @else
+                        Hasn't made a trade yet
+                    @endif
+                </p>
                 @auth
                     @if(Auth::id() === $user->id)
                         <div style="margin-top: 1rem;">
@@ -62,15 +78,19 @@
     {{-- Trades Section --}}
     <div class="card" style="margin-top: 2rem;">
         <h2 style="margin-bottom: 1rem; color: var(--dark-blue);">Trading History</h2>
-        
+
         @guest
             {{-- Not logged in: show message to log in --}}
             <div style="text-align: center; padding: 2rem; color: var(--gray);">
                 <p style="margin-bottom: 1rem;">Log in to view user trades</p>
                 <a href="{{ route('login') }}" class="btn btn-primary">Log In</a>
             </div>
+        @elseif(!$canViewPortfolio)
+            <div style="text-align: center; padding: 2rem; color: var(--gray);">
+                <p>{{ $user->getDisplayName() }} has kept their trading history and portfolio private.</p>
+            </div>
         @else
-            {{-- Show trades for logged-in users (own profile, other users, or admin) --}}
+            {{-- Show trades for logged-in users allowed to view this portfolio --}}
             @if($trades->count() > 0)
                 <table>
                     <thead>

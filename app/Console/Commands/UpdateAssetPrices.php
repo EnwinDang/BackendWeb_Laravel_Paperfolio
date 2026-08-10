@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Asset;
+use App\Models\Position;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -59,6 +60,7 @@ class UpdateAssetPrices extends Command
             $response = Http::timeout(10)->get('https://api.coingecko.com/api/v3/simple/price', [
                 'ids' => $idsString,
                 'vs_currencies' => 'usd',
+                'include_24hr_change' => 'true',
             ]);
 
             if (!$response->successful()) {
@@ -78,14 +80,20 @@ class UpdateAssetPrices extends Command
             foreach ($coinGeckoIdToAsset as $coinGeckoId => $asset) {
                 if (isset($prices[$coinGeckoId]['usd'])) {
                     $price = (float) $prices[$coinGeckoId]['usd'];
-                    
+                    $change24h = isset($prices[$coinGeckoId]['usd_24h_change'])
+                        ? (float) $prices[$coinGeckoId]['usd_24h_change']
+                        : null;
+
                     $asset->update([
                         'price' => $price,
+                        'price_change_24h' => $change24h,
                         'price_last_updated_at' => now(),
                     ]);
-                    
+
                     $updated++;
-                    $this->info("Updated {$asset->symbol} ({$coinGeckoId}): \${$price}");
+                    $this->info("Updated {$asset->symbol} ({$coinGeckoId}): \${$price}" . ($change24h !== null ? " ({$change24h}% 24h)" : ''));
+
+                    $this->liquidateUnderwaterPositions($asset, $price);
                 } else {
                     $failed++;
                     $this->warn("No price data for {$asset->symbol} (CoinGecko ID: {$coinGeckoId})");
@@ -100,6 +108,31 @@ class UpdateAssetPrices extends Command
             $this->error('Failed to update prices: ' . $e->getMessage());
             Log::error('UpdateAssetPrices failed: ' . $e->getMessage());
             return 1;
+        }
+    }
+
+    /**
+     * Auto-close any open leveraged position on this asset whose losses have
+     * wiped out its full margin. Simplified liquidation: no partial liquidation,
+     * no funding rate, just a floor at -100% ROE.
+     */
+    private function liquidateUnderwaterPositions(Asset $asset, float $markPrice): void
+    {
+        $openPositions = Position::where('asset_id', $asset->id)
+            ->where('status', 'open')
+            ->get();
+
+        foreach ($openPositions as $position) {
+            if ($position->isLiquidatable($markPrice)) {
+                $position->update([
+                    'close_price' => $markPrice,
+                    'realized_pnl' => -1 * (float) $position->margin_usd,
+                    'status' => 'liquidated',
+                    'closed_at' => now(),
+                ]);
+
+                $this->warn("Liquidated position #{$position->id} ({$position->direction} {$asset->symbol} {$position->leverage}x) for user #{$position->user_id}");
+            }
         }
     }
 }

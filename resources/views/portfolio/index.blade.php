@@ -1,23 +1,9 @@
-@extends('layouts.app')
+@extends('layouts.dashboard')
 
 @section('title', 'Portfolio')
 
 @section('content')
-    <h1>My Portfolio</h1>
-
-    <div class="card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid var(--dark-blue); margin-bottom: 2rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-            <div>
-                <h2 style="margin: 0; color: var(--dark-blue);">Available Cash</h2>
-                <p style="margin: 0.5rem 0 0 0; color: var(--gray); font-size: 0.9rem;">Starting balance: $1,000.00</p>
-            </div>
-            <div style="font-size: 2rem; font-weight: bold; color: var(--dark-blue);">
-                ${{ number_format($cashBalance, 2) }}
-            </div>
-        </div>
-    </div>
-
-    @if(count($portfolio) > 0)
+    @if(count($portfolio) > 0 || $openPositions->count() > 0 || $closedPositions->count() > 0)
         <div class="card" style="margin-bottom: 1.5rem;">
             <h2>Profit & Loss Summary</h2>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
@@ -53,6 +39,7 @@
             </div>
         </div>
 
+        @if(count($portfolio) > 0)
         <div class="card">
             <h2>Holdings</h2>
             <table>
@@ -119,18 +106,104 @@
                     @endforeach
                     <tr style="font-weight: bold; background-color: var(--gray-light); border-top: 2px solid var(--dark-blue);">
                         <td colspan="4"><strong>Total</strong></td>
-                        <td class="price"><strong>${{ number_format($totalPortfolioValue, 2) }}</strong></td>
+                        <td class="price"><strong>${{ number_format($spotPortfolioValue, 2) }}</strong></td>
                         <td class="price"><strong>${{ number_format($totalInvestedCurrent ?? 0, 2) }}</strong></td>
-                        <td class="price" style="color: {{ $totalUnrealizedProfit >= 0 ? 'var(--success)' : 'var(--error)' }};">
-                            <strong>{{ $totalUnrealizedProfit >= 0 ? '+' : '' }}${{ number_format($totalUnrealizedProfit, 2) }}</strong>
+                        <td class="price" style="color: {{ $spotUnrealizedProfit >= 0 ? 'var(--success)' : 'var(--error)' }};">
+                            <strong>{{ $spotUnrealizedProfit >= 0 ? '+' : '' }}${{ number_format($spotUnrealizedProfit, 2) }}</strong>
                         </td>
-                        <td class="price" style="color: {{ $totalRealizedProfit >= 0 ? 'var(--success)' : 'var(--error)' }};">
-                            <strong>{{ $totalRealizedProfit >= 0 ? '+' : '' }}${{ number_format($totalRealizedProfit, 2) }}</strong>
+                        <td class="price" style="color: {{ $spotRealizedProfit >= 0 ? 'var(--success)' : 'var(--error)' }};">
+                            <strong>{{ $spotRealizedProfit >= 0 ? '+' : '' }}${{ number_format($spotRealizedProfit, 2) }}</strong>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
+        @endif
+
+        @if($openPositions->count() > 0)
+        <div class="card">
+            <h2>Leveraged Positions</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Market</th>
+                        <th>Side</th>
+                        <th>Leverage</th>
+                        <th>Margin</th>
+                        <th>Entry Price</th>
+                        <th>Mark Price</th>
+                        <th>PnL (ROE)</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($openPositions as $position)
+                        @php
+                            $markPrice = (float) $position->asset->price;
+                            $pnl = $position->unrealizedPnl($markPrice);
+                            $roe = $position->roePercent($markPrice);
+                        @endphp
+                        <tr>
+                            <td><a href="{{ route('assets.show', $position->asset) }}" style="color: inherit;"><strong>{{ $position->asset->symbol }}/USD</strong></a></td>
+                            <td><span class="pill {{ $position->direction === 'long' ? 'pill-long' : 'pill-short' }}">{{ ucfirst($position->direction) }}</span></td>
+                            <td>{{ $position->leverage }}x</td>
+                            <td class="price">${{ number_format($position->margin_usd, 2) }}</td>
+                            <td class="price">${{ number_format($position->entry_price, 2) }}</td>
+                            <td class="price">${{ number_format($markPrice, 2) }}</td>
+                            <td class="price" style="color: {{ $pnl >= 0 ? 'var(--success)' : 'var(--error)' }};">
+                                {{ $pnl >= 0 ? '+' : '' }}${{ number_format($pnl, 2) }} ({{ $roe >= 0 ? '+' : '' }}{{ number_format($roe, 1) }}%)
+                            </td>
+                            <td>
+                                <form method="POST" action="{{ route('positions.close', $position) }}">
+                                    @csrf
+                                    <button type="submit" class="btn btn-secondary">Close</button>
+                                </form>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @endif
+
+        @if($closedPositions->count() > 0)
+        <div class="card">
+            <h2>Position History</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Market</th>
+                        <th>Side</th>
+                        <th>Leverage</th>
+                        <th>Margin</th>
+                        <th>Entry Price</th>
+                        <th>Close Price</th>
+                        <th>Result</th>
+                        <th>Closed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($closedPositions as $position)
+                        <tr>
+                            <td><a href="{{ route('assets.show', $position->asset) }}" style="color: inherit;"><strong>{{ $position->asset->symbol }}/USD</strong></a></td>
+                            <td><span class="pill {{ $position->direction === 'long' ? 'pill-long' : 'pill-short' }}">{{ ucfirst($position->direction) }}</span></td>
+                            <td>{{ $position->leverage }}x</td>
+                            <td class="price">${{ number_format($position->margin_usd, 2) }}</td>
+                            <td class="price">${{ number_format($position->entry_price, 2) }}</td>
+                            <td class="price">${{ $position->close_price !== null ? '$' . number_format($position->close_price, 2) : '—' }}</td>
+                            <td class="price" style="color: {{ $position->realized_pnl >= 0 ? 'var(--success)' : 'var(--error)' }};">
+                                {{ $position->realized_pnl >= 0 ? '+' : '' }}${{ number_format($position->realized_pnl, 2) }}
+                                @if($position->status === 'liquidated')
+                                    <br><small style="font-size: 0.75rem; color: var(--error);">Liquidated</small>
+                                @endif
+                            </td>
+                            <td>{{ $position->closed_at?->format('M j, Y') }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @endif
     @else
         <div class="card">
             <div class="empty">

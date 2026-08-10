@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends(auth()->user()->is_admin ? 'layouts.app' : 'layouts.dashboard')
 
 @section('title', 'Edit Profile')
 
@@ -80,12 +80,54 @@
                 </small>
             </div>
 
+            @if(!$user->is_admin)
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" name="show_portfolio" value="1" style="width: auto;" {{ old('show_portfolio', $user->show_portfolio) ? 'checked' : '' }}>
+                        Let other users see my portfolio and trading history on my profile
+                    </label>
+                    <small style="color: var(--gray); font-size: 0.875rem; display: block; margin-top: 0.25rem;">
+                        Turn this off to keep your trades and holdings private. Your own view and admins are unaffected.
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" name="show_age" value="1" style="width: auto;" {{ old('show_age', $user->show_age) ? 'checked' : '' }}>
+                        Show my date of birth and age on my public profile
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" name="show_email" value="1" style="width: auto;" {{ old('show_email', $user->show_email) ? 'checked' : '' }}>
+                        Show my email address on my public profile
+                    </label>
+                    <small style="color: var(--gray); font-size: 0.875rem; display: block; margin-top: 0.25rem;">
+                        Your own view and admins can always see these regardless of these settings.
+                    </small>
+                </div>
+            @endif
+
             <div style="display: flex; gap: 1rem; margin-top: 2rem;">
                 <button type="submit" class="btn btn-primary">Update Profile</button>
                 <a href="{{ route('profile.show', $user) }}" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
+
+    @if(!$user->is_admin)
+        <div class="card" style="margin-top: 1.5rem;">
+            <h3 style="margin-bottom: 0.25rem;">Restart Portfolio</h3>
+            <p style="font-size: 0.85rem; color: var(--gray); margin-bottom: 1rem;">
+                Wipes all your trades and leveraged positions and resets your cash to exactly $1,000. Cannot be undone.
+            </p>
+            <form method="POST" action="{{ route('portfolio.restart') }}" onsubmit="return confirm('This deletes all your trades and open positions and resets your cash to $1,000. Are you sure?');">
+                @csrf
+                <button type="submit" class="btn btn-secondary">Restart Portfolio</button>
+            </form>
+        </div>
+    @endif
 
     @push('scripts')
     <script>

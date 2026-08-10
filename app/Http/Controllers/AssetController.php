@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Asset;
+use App\Models\Post;
 use App\Models\Trade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,12 +20,12 @@ class AssetController extends Controller
 
         $cashBalance = null;
         $watchedAssetIds = [];
-        
+
         if (Auth::check() && !Auth::user()->is_admin) {
             $user = Auth::user();
             $cashBalance = $user->getCashBalance();
             $watchedAssetIds = $user->watchedAssets()->pluck('assets.id')->toArray();
-            
+
             foreach ($assets as $asset) {
                 $ownedAmount = $this->getOwnedAmount(Auth::id(), $asset->id);
                 $assetsWithOwned[] = [
@@ -44,6 +45,37 @@ class AssetController extends Controller
         }
 
         return view('assets.index', compact('assetsWithOwned', 'cashBalance'));
+    }
+
+    /**
+     * The per-asset trading terminal: chart, spot buy/sell, leverage panel,
+     * open positions on this asset, and posts that $cashtag this symbol.
+     */
+    public function show(Asset $asset)
+    {
+        $owned = 0;
+        $cashBalance = null;
+        $isWatched = false;
+        $openPositions = collect();
+
+        if (Auth::check() && !Auth::user()->is_admin) {
+            $user = Auth::user();
+            $owned = $this->getOwnedAmount($user->id, $asset->id);
+            $cashBalance = $user->getCashBalance();
+            $isWatched = $user->watchedAssets()->where('asset_id', $asset->id)->exists();
+            $openPositions = $user->positions()
+                ->where('asset_id', $asset->id)
+                ->where('status', 'open')
+                ->get();
+        }
+
+        $posts = Post::with('user')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->filter(fn ($post) => in_array($asset->symbol, $post->cashtags()))
+            ->values();
+
+        return view('assets.show', compact('asset', 'owned', 'cashBalance', 'isWatched', 'openPositions', 'posts'));
     }
 
     private function getOwnedAmount(int $userId, int $assetId): float
@@ -126,19 +158,24 @@ class AssetController extends Controller
             $response = Http::timeout(10)->get('https://api.coingecko.com/api/v3/simple/price', [
                 'ids' => $asset->coingecko_id,
                 'vs_currencies' => 'usd',
+                'include_24hr_change' => 'true',
             ]);
 
             if ($response->successful()) {
                 $prices = $response->json();
-                
+
                 if (isset($prices[$asset->coingecko_id]['usd'])) {
                     $price = (float) $prices[$asset->coingecko_id]['usd'];
-                    
+                    $change24h = isset($prices[$asset->coingecko_id]['usd_24h_change'])
+                        ? (float) $prices[$asset->coingecko_id]['usd_24h_change']
+                        : null;
+
                     $asset->update([
                         'price' => $price,
+                        'price_change_24h' => $change24h,
                         'price_last_updated_at' => now(),
                     ]);
-                    
+
                     return true;
                 }
             }

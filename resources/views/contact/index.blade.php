@@ -27,7 +27,7 @@
                 </thead>
                 <tbody>
                     @foreach($submissions as $submission)
-                        <tr style="{{ !$submission->read ? 'background-color: #eff6ff;' : '' }}">
+                        <tr style="{{ !$submission->read ? 'background-color: var(--soft-blue-bg);' : '' }}">
                             <td>{{ $submission->created_at->format('Y-m-d H:i') }}</td>
                             <td>{{ $submission->name }}</td>
                             <td>{{ $submission->email }}</td>

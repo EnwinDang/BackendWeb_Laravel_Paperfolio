@@ -1,63 +1,106 @@
-@extends('layouts.app')
+@extends('layouts.dashboard')
 
 @section('title', 'Dashboard')
 
 @section('content')
-    <h1>Dashboard - Welcome, {{ auth()->user()->name }}!</h1>
-
     @if(!auth()->user()->is_admin)
-        <div class="card" style="background: #eff6ff; border: 2px solid var(--dark-blue); margin-bottom: 2rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        @php
+            $totalHoldingsValue = collect($portfolio)->sum(fn($item) => $item['asset']->price ? $item['owned'] * $item['asset']->price : 0);
+            $totalPositionsValue = $openPositions->sum(fn($position) => $position->asset->price
+                ? (float) $position->margin_usd + $position->unrealizedPnl((float) $position->asset->price)
+                : (float) $position->margin_usd);
+            $totalAccountValue = $cashBalance + $totalHoldingsValue + $totalPositionsValue;
+        @endphp
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
                 <div>
-                    <h2 style="margin: 0; color: var(--dark-blue);">Available Cash</h2>
-                    <p style="margin: 0.5rem 0 0 0; color: var(--gray); font-size: 0.9rem;">Starting balance: $1,000.00</p>
+                    <div style="font-size: 1.9rem; font-weight: 800;">${{ number_format($totalAccountValue, 2) }}</div>
+                    <div style="color: var(--text-gray); font-size: 0.85rem; margin-top: 0.25rem;">Cash + holdings, welcome back {{ auth()->user()->getDisplayName() }}</div>
                 </div>
-                <div style="font-size: 2rem; font-weight: bold; color: var(--dark-blue);">
-                    ${{ number_format($cashBalance, 2) }}
-                </div>
+                <a href="{{ route('portfolio.index') }}" class="btn btn-secondary">Manage assets</a>
             </div>
         </div>
-    @endif
 
-    @if(!auth()->user()->is_admin)
-        @if(isset($watchedAssets) && $watchedAssets->count() > 0)
-            <div class="card" style="margin-bottom: 2rem;">
-                <h2>Watchlist</h2>
+        @if($openPositions->count() > 0)
+            <div class="card">
+                <h2>Open Positions</h2>
                 <table>
                     <thead>
                         <tr>
-                            <th>Symbol</th>
-                            <th>Name</th>
-                            <th>Price</th>
-                            <th>24h Change</th>
-                            <th>Actions</th>
+                            <th>Market</th>
+                            <th>Side</th>
+                            <th>Leverage</th>
+                            <th>Margin</th>
+                            <th>Entry Price</th>
+                            <th>Mark Price</th>
+                            <th>PnL (ROE)</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($watchedAssets as $asset)
+                        @foreach($openPositions as $position)
+                            @php
+                                $markPrice = (float) $position->asset->price;
+                                $pnl = $position->unrealizedPnl($markPrice);
+                                $roe = $position->roePercent($markPrice);
+                            @endphp
                             <tr>
-                                <td><strong>{{ $asset->symbol }}</strong></td>
-                                <td>{{ $asset->name }}</td>
-                                <td class="price">
-                                    @if($asset->price)
-                                        ${{ number_format($asset->price, 2) }}
-                                    @else
-                                        <span style="color: var(--gray);">—</span>
-                                    @endif
+                                <td><a href="{{ route('assets.show', $position->asset) }}" style="color: inherit;"><strong>{{ $position->asset->symbol }}/USD</strong></a></td>
+                                <td><span class="pill {{ $position->direction === 'long' ? 'pill-long' : 'pill-short' }}">{{ ucfirst($position->direction) }}</span></td>
+                                <td>{{ $position->leverage }}x</td>
+                                <td class="price">${{ number_format($position->margin_usd, 2) }}</td>
+                                <td class="price">${{ number_format($position->entry_price, 2) }}</td>
+                                <td class="price">${{ number_format($markPrice, 2) }}</td>
+                                <td class="price" style="color: {{ $pnl >= 0 ? 'var(--success)' : 'var(--error)' }};">
+                                    {{ $pnl >= 0 ? '+' : '' }}${{ number_format($pnl, 2) }} ({{ $roe >= 0 ? '+' : '' }}{{ number_format($roe, 1) }}%)
                                 </td>
                                 <td>
-                                    <span style="color: var(--gray);">—</span>
-                                </td>
-                                <td>
-                                    <form method="POST" action="{{ route('assets.watchlist.remove', $asset) }}" style="display: inline;">
+                                    <form method="POST" action="{{ route('positions.close', $position) }}">
                                         @csrf
-                                        <button type="submit" class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;">Remove</button>
+                                        <button type="submit" class="btn btn-secondary">Close</button>
                                     </form>
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+        @endif
+
+        @if(isset($watchedAssets) && $watchedAssets->count() > 0)
+            <div class="card">
+                <h2>Watchlist</h2>
+                <div class="watch-grid">
+                    @foreach($watchedAssets as $asset)
+                        @php $change = $asset->price_change_24h !== null ? (float) $asset->price_change_24h : null; @endphp
+                        <div class="watch-card">
+                            <a href="{{ route('assets.show', $asset) }}" style="color: inherit; text-decoration: none; display: block;">
+                                <div class="watch-card-head">
+                                    <span>{{ $asset->name }}</span>
+                                    <span class="watch-card-symbol">{{ $asset->symbol }}</span>
+                                </div>
+                                <div style="display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap;">
+                                    <div class="watch-card-price">
+                                        @if($asset->price)
+                                            ${{ number_format($asset->price, 2) }}
+                                        @else
+                                            <span style="color: var(--text-gray); font-size: 1rem;">No price yet</span>
+                                        @endif
+                                    </div>
+                                    @if($change !== null)
+                                        <span style="font-size: 0.8rem; font-weight: 700; color: {{ $change >= 0 ? 'var(--success)' : 'var(--error)' }};">
+                                            {{ $change >= 0 ? '▲' : '▼' }} {{ number_format(abs($change), 2) }}%
+                                        </span>
+                                    @endif
+                                </div>
+                            </a>
+                            <form method="POST" action="{{ route('assets.watchlist.remove', $asset) }}">
+                                @csrf
+                                <button type="submit" class="watch-card-remove">Remove from watchlist</button>
+                            </form>
+                        </div>
+                    @endforeach
+                </div>
             </div>
         @endif
 
@@ -72,6 +115,7 @@
                             <th>Owned</th>
                             <th>Current Price</th>
                             <th>Value</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -93,6 +137,9 @@
                                     @else
                                         <span style="color: var(--gray);">—</span>
                                     @endif
+                                </td>
+                                <td>
+                                    <a href="{{ route('assets.show', $item['asset']) }}" class="btn btn-secondary" style="padding: 0.4rem 1rem; font-size: 0.85rem;">Trade</a>
                                 </td>
                             </tr>
                         @endforeach
@@ -117,7 +164,7 @@
                             <th>Name</th>
                             <th>Price</th>
                             <th>Owned</th>
-                            <th>Actions</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -129,7 +176,7 @@
                             <tr>
                                 <td>
                                     <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                        <strong>{{ $asset->symbol }}</strong>
+                                        <a href="{{ route('assets.show', $asset) }}" style="color: inherit; text-decoration: none;"><strong>{{ $asset->symbol }}</strong></a>
                                         @if($item['is_watched'] ?? false)
                                             <form method="POST" action="{{ route('assets.watchlist.remove', $asset) }}" style="display: inline;" title="Remove from watchlist">
                                                 @csrf
@@ -159,82 +206,7 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if($asset->price)
-                                        <div style="display: flex; flex-direction: column; gap: 1rem; min-width: 280px;">
-                                            {{-- Buy Section --}}
-                                            <div style="padding-bottom: 1rem; border-bottom: 1px solid #e2e8f0;">
-                                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                                                    <span style="font-size: 0.8rem; color: var(--gray); font-weight: 500;">Buy</span>
-                                                    <span style="font-size: 0.75rem; color: var(--gray);">Available: ${{ number_format($cashBalance, 2) }}</span>
-                                                </div>
-                                                <form method="POST" action="{{ route('trades.buy', $asset) }}" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                                                    @csrf
-                                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                                        <span style="color: var(--gray-dark); font-size: 0.9rem;">$</span>
-                                                        <input 
-                                                            type="number" 
-                                                            name="dollar_amount" 
-                                                            step="0.01" 
-                                                            min="0.01" 
-                                                            max="{{ $cashBalance }}"
-                                                            placeholder="0.00" 
-                                                            required 
-                                                            style="flex: 1; padding: 0.4rem 0.6rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.9rem;"
-                                                            oninput="updateBuyEstimate({{ $asset->id }}, {{ $asset->price }}, this.value)"
-                                                        >
-                                                        <button type="submit" class="btn btn-success" style="padding: 0.4rem 1rem; font-size: 0.85rem; background: #10b981; border-color: #10b981;">Buy</button>
-                                                    </div>
-                                                    <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.7rem; color: var(--gray); margin-left: 1.25rem;">
-                                                        <span>Max: ${{ number_format($cashBalance, 2) }}</span>
-                                                        <span id="buy-estimate-{{ $asset->id }}" style="display: none;">
-                                                            ≈ <span id="buy-amount-{{ $asset->id }}">0</span> {{ $asset->symbol }}
-                                                        </span>
-                                                    </div>
-                                                </form>
-                                            </div>
-
-                                            {{-- Sell Section --}}
-                                            @if($owned > 0)
-                                                <div>
-                                                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                                                        <span style="font-size: 0.8rem; color: var(--gray); font-weight: 500;">Sell</span>
-                                                        <span style="font-size: 0.75rem; color: var(--gray);">Own: {{ number_format($owned, 8) }} {{ $asset->symbol }}</span>
-                                                    </div>
-                                                    <form method="POST" action="{{ route('trades.sell', $asset) }}" id="sell-form-{{ $asset->id }}" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                                                        @csrf
-                                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                                            <input 
-                                                                type="number" 
-                                                                name="amount" 
-                                                                step="0.00000001" 
-                                                                min="0.00000001" 
-                                                                max="{{ $owned }}" 
-                                                                placeholder="0.00000000" 
-                                                                required 
-                                                                id="sell-amount-{{ $asset->id }}"
-                                                                style="flex: 1; padding: 0.4rem 0.6rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.9rem;"
-                                                                oninput="updateSellEstimate({{ $asset->id }}, {{ $asset->price }}, this.value)"
-                                                            >
-                                                            <button type="submit" class="btn btn-danger" style="padding: 0.4rem 1rem; font-size: 0.85rem; background: #ef4444; border-color: #ef4444;">Sell</button>
-                                                        </div>
-                                                        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                                                            <div class="percent-buttons" style="display: flex; gap: 0.25rem; flex: 1;">
-                                                                <button type="button" class="percent-btn" onclick="setSellAmount({{ $asset->id }}, {{ $owned }}, 0.25)" style="padding: 0.25rem 0.5rem; font-size: 0.7rem;">25%</button>
-                                                                <button type="button" class="percent-btn" onclick="setSellAmount({{ $asset->id }}, {{ $owned }}, 0.50)" style="padding: 0.25rem 0.5rem; font-size: 0.7rem;">50%</button>
-                                                                <button type="button" class="percent-btn" onclick="setSellAmount({{ $asset->id }}, {{ $owned }}, 0.75)" style="padding: 0.25rem 0.5rem; font-size: 0.7rem;">75%</button>
-                                                                <button type="button" class="percent-btn" onclick="setSellAmount({{ $asset->id }}, {{ $owned }}, 1.00)" style="padding: 0.25rem 0.5rem; font-size: 0.7rem;">100%</button>
-                                                            </div>
-                                                            <span id="sell-estimate-{{ $asset->id }}" style="font-size: 0.7rem; color: var(--gray); display: none;">
-                                                                ≈ $<span id="sell-value-{{ $asset->id }}">0.00</span>
-                                                            </span>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    @else
-                                        <span style="color: var(--gray);">No price</span>
-                                    @endif
+                                    <a href="{{ route('assets.show', $asset) }}" class="btn btn-primary" style="padding: 0.4rem 1rem; font-size: 0.85rem;">Trade</a>
                                 </td>
                             </tr>
                         @endforeach
@@ -285,41 +257,4 @@
             @endif
         </div>
     @endif
-
-    @push('scripts')
-    <script>
-        function setSellAmount(assetId, owned, percentage) {
-            const amount = owned * percentage;
-            const input = document.getElementById('sell-amount-' + assetId);
-            if (input) {
-                input.value = amount.toFixed(8);
-                input.dispatchEvent(new Event('input'));
-            }
-        }
-
-        function updateBuyEstimate(assetId, price, dollarAmount) {
-            const estimateDiv = document.getElementById('buy-estimate-' + assetId);
-            const amountSpan = document.getElementById('buy-amount-' + assetId);
-            if (estimateDiv && amountSpan && dollarAmount && dollarAmount > 0) {
-                const estimatedAmount = (parseFloat(dollarAmount) / price).toFixed(8);
-                amountSpan.textContent = estimatedAmount;
-                estimateDiv.style.display = 'block';
-            } else if (estimateDiv) {
-                estimateDiv.style.display = 'none';
-            }
-        }
-
-        function updateSellEstimate(assetId, price, amount) {
-            const estimateDiv = document.getElementById('sell-estimate-' + assetId);
-            const valueSpan = document.getElementById('sell-value-' + assetId);
-            if (estimateDiv && valueSpan && amount && amount > 0) {
-                const estimatedValue = (parseFloat(amount) * price).toFixed(2);
-                valueSpan.textContent = estimatedValue;
-                estimateDiv.style.display = 'block';
-            } else if (estimateDiv) {
-                estimateDiv.style.display = 'none';
-            }
-        }
-    </script>
-    @endpush
 @endsection

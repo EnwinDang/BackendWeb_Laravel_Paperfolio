@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Create News')
+@section('title', 'Post Announcement')
 
 @section('content')
-    <h1>Create News</h1>
+    <h1>Post Announcement</h1>
 
     <div class="card">
         <form method="POST" action="{{ route('news.store') }}" enctype="multipart/form-data" id="newsForm">
@@ -55,7 +55,7 @@
             </div>
 
             <div>
-                <button type="submit" class="btn btn-primary">Create News</button>
+                <button type="submit" class="btn btn-primary">Post Announcement</button>
                 <a href="{{ route('news.index') }}" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
@@ -222,10 +222,10 @@
                         };
                         
                         xhr.send(formData);
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('An error occurred while submitting the form. Please try again.');
-                        });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while submitting the form. Please try again.');
                     });
             }
         });

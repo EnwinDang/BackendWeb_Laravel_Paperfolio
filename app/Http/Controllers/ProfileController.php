@@ -12,13 +12,22 @@ class ProfileController extends Controller
 {
     public function show(User $user)
     {
-        // Fetch trades for the user, ordered by most recent first
-        $trades = Trade::where('user_id', $user->id)
-            ->with('asset')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $canViewPortfolio = $user->portfolioVisibleTo(Auth::user());
 
-        return view('profile.show', compact('user', 'trades'));
+        // Fetch trades for the user, ordered by most recent first
+        $trades = $canViewPortfolio
+            ? Trade::where('user_id', $user->id)->with('asset')->orderBy('created_at', 'desc')->get()
+            : collect();
+
+        // "Trading since" is based on their first trade, not account creation
+        $firstTrade = Trade::where('user_id', $user->id)->oldest('created_at')->first();
+        $firstTradeAt = $firstTrade?->created_at;
+
+        // Total portfolio value (in $) is always shown on every profile, regardless
+        // of the show_portfolio privacy setting, which only gates the detailed trade history.
+        $portfolioValue = $user->is_admin ? null : $user->getTotalPortfolioValue();
+
+        return view('profile.show', compact('user', 'trades', 'canViewPortfolio', 'firstTradeAt', 'portfolioValue'));
     }
 
     public function edit()
@@ -42,6 +51,9 @@ class ProfileController extends Controller
             'username' => $request->username,
             'date_of_birth' => $request->date_of_birth,
             'about_me' => $request->about_me,
+            'show_portfolio' => $request->has('show_portfolio'),
+            'show_age' => $request->has('show_age'),
+            'show_email' => $request->has('show_email'),
         ];
 
         if ($request->hasFile('profile_picture')) {

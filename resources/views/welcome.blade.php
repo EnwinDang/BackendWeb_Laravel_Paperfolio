@@ -1,165 +1,94 @@
-@extends('layouts.app')
+@extends('layouts.marketing')
 
-@section('title', 'CryptoHub - Paper Trading Platform')
-
-@push('styles')
-<style>
-    .hero-section {
-        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-        color: var(--white);
-        padding: 4rem 2rem;
-        text-align: center;
-        border-radius: 8px;
-        margin-bottom: 2rem;
-    }
-    .hero-section h1 {
-        color: var(--white);
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        line-height: 1.2;
-    }
-    .hero-section p {
-        font-size: 1.25rem;
-        margin-bottom: 2rem;
-        opacity: 0.95;
-        line-height: 1.6;
-        max-width: 700px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    .cta-buttons {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-    .btn-hero {
-        display: inline-block;
-        padding: 1rem 2rem;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 1.1rem;
-        transition: transform 0.2s, box-shadow 0.2s;
-        border: none;
-        cursor: pointer;
-    }
-    .btn-hero:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-    }
-    .btn-hero-primary {
-        background: var(--white);
-        color: var(--dark-blue);
-    }
-    .btn-hero-secondary {
-        background: rgba(255, 255, 255, 0.2);
-        color: var(--white);
-        border: 2px solid var(--white);
-    }
-    .features {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 2rem;
-        margin-top: 2rem;
-    }
-    .feature {
-        background: var(--white);
-        padding: 2rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .feature:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    }
-    .feature h3 {
-        color: var(--dark-blue);
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
-    }
-    .feature p {
-        color: var(--gray);
-        line-height: 1.6;
-    }
-    @media (max-width: 768px) {
-        .hero-section h1 {
-            font-size: 2rem;
-        }
-        .hero-section p {
-            font-size: 1.1rem;
-        }
-    }
-</style>
-@endpush
+@section('title', 'PaperFolio - Paper Trading Platform')
 
 @section('content')
-    <div class="hero-section">
-        <h1>Paper Trading Made Simple</h1>
-        <p>
-            Practice crypto trading with virtual money. Learn the markets, test strategies, 
-            and build your trading skills without any financial risk.
-        </p>
-        @guest
-            <div class="cta-buttons">
-                <a href="{{ route('register') }}" class="btn-hero btn-hero-primary">Get Started</a>
-                <a href="{{ route('login') }}" class="btn-hero btn-hero-secondary">Login</a>
+    <div class="hero">
+        <div>
+            <h1>Master the Markets<br>with <span class="hl">$1,000</span></h1>
+            <p>
+                Risk-free crypto paper trading with a social edge. Buy and sell with virtual
+                cash, go long or short with up to 100x leverage, share your calls on the feed,
+                and climb the weekly leaderboard.
+            </p>
+            <div class="hero-actions">
+                <a href="{{ route('register') }}" class="btn btn-primary btn-lg">Get Started</a>
+                <a href="{{ route('leaderboard.index') }}" class="btn btn-outline btn-lg">View Leaderboard</a>
             </div>
-        @else
-            <div class="cta-buttons">
-                <a href="{{ route('dashboard') }}" class="btn-hero btn-hero-primary">Go to Dashboard</a>
-                <a href="{{ route('assets.index') }}" class="btn-hero btn-hero-secondary">View Assets</a>
-            </div>
-        @endguest
+        </div>
+        <div class="hero-chart">
+            <div class="hero-chart-label">Live Market Data</div>
+            <svg viewBox="0 0 400 180" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" style="color: var(--accent);">
+                <polyline points="0,140 40,120 80,150 120,90 160,110 200,60 240,80 280,40 320,55 360,20 400,35"
+                    fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                <circle cx="400" cy="35" r="5" fill="currentColor" />
+            </svg>
+            <p style="color: var(--text-gray); font-size: 0.75rem; margin-top: 0.75rem;">
+                Real prices via CoinGecko, refreshed automatically every 5 minutes.
+            </p>
+        </div>
     </div>
 
-    <div class="card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid var(--dark-blue); margin-bottom: 2rem;">
-        <div style="text-align: center; padding: 2rem;">
-            <h2 style="color: var(--dark-blue); margin-bottom: 1rem; font-size: 2rem;">How It Works</h2>
-            <div style="max-width: 800px; margin: 0 auto;">
-                <p style="font-size: 1.25rem; color: var(--gray-dark); margin-bottom: 1.5rem; line-height: 1.8;">
-                    <strong style="color: var(--dark-blue);">Every new player starts with $1,000 in virtual money!</strong>
-                </p>
-                <p style="font-size: 1.1rem; color: var(--gray-dark); line-height: 1.8; margin-bottom: 1rem;">
-                    This is a competitive trading game where you test your skills with fake money. 
-                    Buy and sell cryptocurrencies, build your portfolio, and compete on the leaderboard 
-                    to see who has the best trading skills!
-                </p>
-                <div style="display: flex; justify-content: center; gap: 3rem; margin-top: 2.5rem; flex-wrap: wrap;">
-                    <div style="text-align: center; flex: 1; min-width: 150px;">
-                        <div style="font-size: 2.5rem; font-weight: bold; color: var(--dark-blue); margin-bottom: 0.5rem;">$1,000</div>
-                        <div style="color: var(--gray); font-size: 0.95rem; font-weight: 500;">Starting Balance</div>
-                    </div>
-                    <div style="text-align: center; flex: 1; min-width: 150px;">
-                        <div style="font-size: 2.5rem; font-weight: bold; color: var(--dark-blue); margin-bottom: 0.5rem;">Virtual</div>
-                        <div style="color: var(--gray); font-size: 0.95rem; font-weight: 500;">Risk-Free Trading</div>
-                    </div>
-                    <div style="text-align: center; flex: 1; min-width: 150px;">
-                        <div style="font-size: 2.5rem; font-weight: bold; color: var(--dark-blue); margin-bottom: 0.5rem;">Compete</div>
-                        <div style="color: var(--gray); font-size: 0.95rem; font-weight: 500;">Weekly Leaderboard</div>
+    <div class="section">
+        <h2>Rules of the Vault</h2>
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-icon" style="color: var(--accent);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                 </div>
+                <h3>Start with $1,000</h3>
+                <p>Everyone starts equal, with the same $1,000 in virtual cash. Reset your portfolio back to exactly $1,000 any time from your account settings — no real money, ever.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon" style="color: var(--accent-2);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"></path><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path></svg>
                 </div>
+                <h3>Social-First Trading</h3>
+                <p>Post your calls with $cashtags, like other traders' posts, and jump straight from a post to that asset's chart and trade panel.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon" style="color: var(--accent-2);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"></circle><path d="M8.21 13.89 7 23l5-3 5 3-1.21-9.12"></path></svg>
+                </div>
+                <h3>Weekly, Monthly &amp; Yearly Leaderboards</h3>
+                <p>Ranked by realized profit percentage, reset on whichever cadence you like so tenure alone can't camp the top spot.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon" style="color: var(--accent);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                </div>
+                <h3>Leverage up to 100x</h3>
+                <p>Go long or short on any asset at 5x, 10x, or 100x. A simplified liquidation model means you can only ever lose your margin — never more.</p>
             </div>
         </div>
-        </div>
+    </div>
 
-    <div class="features">
-        <div class="feature">
-            <h3>Real-time Prices</h3>
-            <p>Track cryptocurrency prices and make informed trading decisions with up-to-date market data.</p>
+    @if($trendingPosts->isNotEmpty())
+        <div class="section">
+            <div class="section-head">
+                <h2 style="margin-bottom: 0;">Trending on the Feed</h2>
+                <a href="{{ route('login') }}">Log in to view feed &rarr;</a>
+            </div>
+            <div class="grid-3">
+                @foreach($trendingPosts as $post)
+                    <div class="card post-card">
+                        <div class="post-head">
+                            <span class="post-author">{{ $post->user->getDisplayName() }}</span>
+                            <span class="post-time">{{ $post->created_at->diffForHumans() }}</span>
+                        </div>
+                        <div class="post-content">{!! $post->renderedContent() !!}</div>
+                        <div class="post-stats">
+                            <span>&hearts; {{ $post->likers_count }}</span>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
         </div>
-        <div class="feature">
-            <h3>Portfolio Tracking</h3>
-            <p>Monitor your virtual portfolio, track your trades, and analyze your performance over time.</p>
-        </div>
-        <div class="feature">
-            <h3>Risk-Free Learning</h3>
-            <p>Practice trading strategies without risking real money. Perfect for beginners and experienced traders alike.</p>
-        </div>
-        <div class="feature">
-            <h3>Weekly Leaderboard</h3>
-            <p>Compete with other traders! See who has the best realized profit percentage each week and climb the ranks.</p>
-        </div>
+    @endif
+
+    <div class="cta">
+        <h2>Join <span class="hl">{{ number_format($traderCount) }}+</span> Traders Today</h2>
+        <p>Stop losing real money while learning. Test your strategies risk-free in the PaperFolio arena.</p>
+        <a href="{{ route('register') }}" class="btn btn-green btn-lg">Create Free Account</a>
     </div>
 @endsection

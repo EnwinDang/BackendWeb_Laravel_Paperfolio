@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Edit News')
+@section('title', 'Edit Announcement')
 
 @section('content')
-    <h1>Edit News</h1>
+    <h1>Edit Announcement</h1>
 
     <div class="card">
         <form method="POST" action="{{ route('news.update', $news) }}" enctype="multipart/form-data" id="newsForm">
@@ -63,17 +63,17 @@
             </div>
 
             <div>
-                <button type="submit" class="btn btn-primary">Update News</button>
+                <button type="submit" class="btn btn-primary">Update Announcement</button>
                 <a href="{{ route('news.index') }}" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
 
     <div class="card" style="margin-top: 2rem; border: 2px solid var(--error);">
-        <form method="POST" action="{{ route('news.destroy', $news) }}" onsubmit="return confirm('Are you sure you want to delete this news item?');">
+        <form method="POST" action="{{ route('news.destroy', $news) }}" onsubmit="return confirm('Are you sure you want to delete this announcement?');">
             @csrf
             @method('DELETE')
-            <button type="submit" class="btn btn-danger">Delete News</button>
+            <button type="submit" class="btn btn-danger">Delete Announcement</button>
         </form>
     </div>
 

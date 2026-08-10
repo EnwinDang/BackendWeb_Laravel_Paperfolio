@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Asset;
 use App\Models\Trade;
+use App\Models\Position;
 use Illuminate\Support\Facades\Auth;
 
 class PortfolioController extends Controller
@@ -102,23 +103,75 @@ class PortfolioController extends Controller
             }
         }
 
+        // Leveraged positions: fold their margin/P&L into the same totals so this
+        // page reflects the full account, not just spot holdings.
+        $openPositions = $user->positions()->where('status', 'open')->with('asset')->get();
+        $closedPositions = $user->positions()->whereIn('status', ['closed', 'liquidated'])->with('asset')->orderByDesc('closed_at')->get();
+
+        $positionsMarginValue = 0;
+        $positionsUnrealizedPnl = 0;
+        foreach ($openPositions as $position) {
+            $positionsMarginValue += (float) $position->margin_usd;
+            $positionsUnrealizedPnl += $position->asset->price
+                ? $position->unrealizedPnl((float) $position->asset->price)
+                : 0;
+        }
+
+        $positionsRealizedPnl = (float) $closedPositions->sum('realized_pnl');
+        $positionsMarginAtRisk = (float) $openPositions->sum('margin_usd') + (float) $closedPositions->sum('margin_usd');
+
+        // Spot-only subtotals, kept separate so the Holdings table footer (which only
+        // lists spot assets) still foots correctly against its own rows.
+        $spotPortfolioValue = $totalPortfolioValue;
+        $spotUnrealizedProfit = $totalUnrealizedProfit;
+        $spotRealizedProfit = $totalRealizedProfit;
+
+        // Overall account totals (spot + leveraged positions), used in the summary card.
+        $totalPortfolioValue += $positionsMarginValue + $positionsUnrealizedPnl;
+        $totalUnrealizedProfit += $positionsUnrealizedPnl;
+        $totalRealizedProfit += $positionsRealizedPnl;
+
         $totalProfit = $totalUnrealizedProfit + $totalRealizedProfit;
-        // Calculate percentage based on total invested (all buy trades), not just current holdings
-        $totalInvested = $totalInvestedAll > 0 ? $totalInvestedAll : $totalInvestedCurrent;
+        // Calculate percentage based on total invested (all buy trades + all position margin), not just current holdings
+        $totalInvested = ($totalInvestedAll > 0 ? $totalInvestedAll : $totalInvestedCurrent) + $positionsMarginAtRisk;
         $totalProfitPercent = $totalInvested > 0 ? ($totalProfit / $totalInvested) * 100 : 0;
 
         $cashBalance = $user->getCashBalance();
 
         return view('portfolio.index', compact(
-            'portfolio', 
-            'totalPortfolioValue', 
+            'portfolio',
+            'totalPortfolioValue',
             'totalInvested',
             'totalInvestedCurrent',
             'totalUnrealizedProfit',
             'totalRealizedProfit',
             'totalProfit',
             'totalProfitPercent',
-            'cashBalance'
+            'cashBalance',
+            'openPositions',
+            'closedPositions',
+            'spotPortfolioValue',
+            'spotUnrealizedProfit',
+            'spotRealizedProfit'
         ));
+    }
+
+    /**
+     * Self-service reset: wipe the user's own trades and positions.
+     * Cash balance is always recomputed from history, so this puts them
+     * back to exactly $1,000 — never more.
+     */
+    public function restart()
+    {
+        $user = Auth::user();
+
+        if ($user->is_admin) {
+            abort(403);
+        }
+
+        $user->trades()->delete();
+        $user->positions()->delete();
+
+        return redirect()->route('dashboard')->with('success', 'Your portfolio has been reset. You have $1,000.00 to trade with again.');
     }
 }
