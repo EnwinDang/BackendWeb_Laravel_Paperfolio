@@ -325,6 +325,7 @@
                     @endif
                 </a>
             </li>
+            <li><a href="{{ route('price-alerts.index') }}" title="Price Alerts" class="{{ request()->routeIs('price-alerts.*') ? 'active' : '' }}"><x-nav-icon name="price-alerts" /><span class="nav-text">Price Alerts</span></a></li>
             <li><a href="{{ route('leaderboard.index') }}" title="Leaderboard" class="{{ request()->routeIs('leaderboard.*') ? 'active' : '' }}"><x-nav-icon name="leaderboard" /><span class="nav-text">Leaderboard</span></a></li>
             <li><a href="{{ route('news.index') }}" title="Announcements" class="{{ request()->routeIs('news.*') ? 'active' : '' }}"><x-nav-icon name="announcements" /><span class="nav-text">Announcements</span></a></li>
         </ul>

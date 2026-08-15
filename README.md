@@ -188,7 +188,7 @@ A Laravel-based paper trading application for practicing cryptocurrency trading 
 - `id`, `name`, `email`, `subject`, `message`, `read`, `admin_response`, `responded_at`, `timestamps`
 
 **messages**
-- `id`, `sender_id`, `recipient_id`, `content`, `read`, `timestamps`
+- `id`, `sender_id`, `recipient_id`, `message`, `read_at`, `timestamps`
 
 **asset_user** (Watchlist pivot table)
 - `id`, `user_id`, `asset_id`, `timestamps`

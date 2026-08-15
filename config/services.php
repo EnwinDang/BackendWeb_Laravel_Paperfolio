@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'price_alerts' => [
+        'url' => env('PRICE_ALERTS_API_URL', 'http://localhost:4000'),
+        'key' => env('PRICE_ALERTS_API_KEY'),
+    ],
+
 ];

@@ -94,6 +94,7 @@ class UpdateAssetPrices extends Command
                     $this->info("Updated {$asset->symbol} ({$coinGeckoId}): \${$price}" . ($change24h !== null ? " ({$change24h}% 24h)" : ''));
 
                     $this->liquidateUnderwaterPositions($asset, $price);
+                    $this->pushPriceToPriceAlertsApi($asset, $price);
                 } else {
                     $failed++;
                     $this->warn("No price data for {$asset->symbol} (CoinGecko ID: {$coinGeckoId})");
@@ -133,6 +134,42 @@ class UpdateAssetPrices extends Command
 
                 $this->warn("Liquidated position #{$position->id} ({$position->direction} {$asset->symbol} {$position->leverage}x) for user #{$position->user_id}");
             }
+        }
+    }
+
+    /**
+     * Best-effort push of the new price to the standalone Price Alerts API so it
+     * can evaluate pending alerts. Wrapped in its own try/catch so a down or
+     * misconfigured Price Alerts API can never affect this command's own
+     * success/failure - Laravel's own price update must continue regardless.
+     */
+    private function pushPriceToPriceAlertsApi(Asset $asset, float $price): void
+    {
+        $baseUrl = config('services.price_alerts.url');
+        $apiKey = config('services.price_alerts.key');
+
+        if (empty($baseUrl) || empty($apiKey)) {
+            return;
+        }
+
+        try {
+            $lookup = Http::timeout(5)->get(rtrim($baseUrl, '/') . '/assets', ['symbol' => $asset->symbol]);
+
+            if (!$lookup->successful()) {
+                return;
+            }
+
+            $match = collect($lookup->json('data', []))->firstWhere('symbol', $asset->symbol);
+
+            if (!$match) {
+                return;
+            }
+
+            Http::timeout(5)
+                ->withHeaders(['x-api-key' => $apiKey])
+                ->put(rtrim($baseUrl, '/') . "/assets/{$match['id']}", ['current_price' => $price]);
+        } catch (\Exception $e) {
+            Log::warning("Failed to push price to Price Alerts API for {$asset->symbol}: " . $e->getMessage());
         }
     }
 }

@@ -341,7 +341,7 @@ Have a suggestion for another asset we should add? Let us know through the conta
             'subject' => 'Feature request: Price alerts',
             'message' => 'Would it be possible to add price alerts? I\'d love to be notified when a cryptocurrency reaches a certain price.',
             'read' => true,
-            'admin_response' => 'Thank you for your suggestion! We\'re always looking to improve the platform. Price alerts are on our roadmap for future updates.',
+            'admin_response' => 'Thank you for your suggestion! Price alerts are live now - head to the Price Alerts page to get notified when any asset hits your target price.',
             'responded_at' => Carbon::now()->subDays(1),
             'created_at' => Carbon::now()->subDays(5),
         ]);

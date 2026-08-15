@@ -49,6 +49,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/assets/{asset}/buy', [TradeController::class, 'buy'])->name('trades.buy');
     Route::post('/assets/{asset}/sell', [TradeController::class, 'sell'])->name('trades.sell');
 
+    // Price alerts - proxied to the standalone Price Alerts Node.js API
+    Route::get('/price-alerts', [\App\Http\Controllers\PriceAlertController::class, 'index'])->name('price-alerts.index');
+    Route::post('/price-alerts', [\App\Http\Controllers\PriceAlertController::class, 'store'])->name('price-alerts.store');
+    Route::delete('/price-alerts/{id}', [\App\Http\Controllers\PriceAlertController::class, 'destroy'])->name('price-alerts.destroy');
+
     // Leveraged positions
     Route::post('/assets/{asset}/positions/open', [PositionController::class, 'open'])->name('positions.open');
     Route::post('/positions/{position}/close', [PositionController::class, 'close'])->name('positions.close');
