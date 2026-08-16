@@ -21,8 +21,15 @@ class LoginController extends Controller
         ]);
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            if (Auth::user()->is_suspended) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'Your account has been suspended.',
+                ])->onlyInput('email');
+            }
+
             $request->session()->regenerate();
-            
+
             if (Auth::user()->is_admin) {
                 return redirect()->intended('/assets');
             }

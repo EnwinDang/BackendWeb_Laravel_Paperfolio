@@ -76,7 +76,7 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <form method="POST" action="{{ route('price-alerts.destroy', $alert['id']) }}" onsubmit="return confirm('Delete this alert?');">
+                                    <form method="POST" action="{{ route('price-alerts.destroy', $alert['id']) }}" onsubmit="return confirmAction(event, 'Delete this alert?');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Delete</button>

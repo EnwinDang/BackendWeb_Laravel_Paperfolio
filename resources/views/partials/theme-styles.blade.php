@@ -314,7 +314,7 @@
     /* Theme toggle button, shared shape across every layout */
     .theme-toggle {
         background: var(--card-bg);
-        border: 2px solid var(--ink);
+        border: 2px solid transparent;
         color: var(--ink);
         font-family: inherit;
         font-weight: 800;
@@ -325,6 +325,7 @@
         flex-shrink: 0;
     }
     .theme-toggle:hover {
+        border-color: var(--ink);
         background: var(--accent);
         color: var(--on-accent);
     }

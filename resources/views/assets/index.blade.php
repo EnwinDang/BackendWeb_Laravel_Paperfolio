@@ -56,7 +56,7 @@
                                     </td>
                                     <td>
                                         <a href="{{ route('assets.edit', $asset) }}" class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem; margin-right: 0.25rem;">Edit</a>
-                                        <form method="POST" action="{{ route('assets.destroy', $asset) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this asset?');">
+                                        <form method="POST" action="{{ route('assets.destroy', $asset) }}" style="display: inline;" onsubmit="return confirmAction(event, 'Are you sure you want to delete this asset?');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Delete</button>

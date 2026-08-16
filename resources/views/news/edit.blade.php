@@ -70,7 +70,7 @@
     </div>
 
     <div class="card" style="margin-top: 2rem; border: 2px solid var(--error);">
-        <form method="POST" action="{{ route('news.destroy', $news) }}" onsubmit="return confirm('Are you sure you want to delete this announcement?');">
+        <form method="POST" action="{{ route('news.destroy', $news) }}" onsubmit="return confirmAction(event, 'Are you sure you want to delete this announcement?');">
             @csrf
             @method('DELETE')
             <button type="submit" class="btn btn-danger">Delete Announcement</button>

@@ -166,7 +166,7 @@
                             @if(auth()->user()->is_admin)
                                 <div class="category-admin-actions">
                                     <a href="{{ route('faq.category.edit', $category) }}" class="btn btn-secondary">Edit Category</a>
-                                    <form method="POST" action="{{ route('faq.category.destroy', $category) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this category? All items in this category will also be deleted.');">
+                                    <form method="POST" action="{{ route('faq.category.destroy', $category) }}" style="display: inline;" onsubmit="return confirmAction(event, 'Are you sure you want to delete this category? All items in this category will also be deleted.');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger">Delete Category</button>
@@ -195,7 +195,7 @@
                                         @if(auth()->user()->is_admin)
                                             <div class="item-admin-actions">
                                                 <a href="{{ route('faq.item.edit', $item) }}" class="btn btn-secondary">Edit</a>
-                                                <form method="POST" action="{{ route('faq.item.destroy', $item) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this FAQ item?');">
+                                                <form method="POST" action="{{ route('faq.item.destroy', $item) }}" style="display: inline;" onsubmit="return confirmAction(event, 'Are you sure you want to delete this FAQ item?');">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-danger">Delete</button>

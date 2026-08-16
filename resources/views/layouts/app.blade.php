@@ -4,6 +4,7 @@
     @include('partials.theme-init-script')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', config('app.name', 'PaperFolio'))</title>
     @include('partials.theme-styles')
     <style>
@@ -13,8 +14,8 @@
             flex-direction: column;
         }
         .header {
-            background-color: var(--ink);
-            color: var(--ink-contrast);
+            background-color: var(--card-bg);
+            color: var(--ink);
             padding: 1.1rem 0;
             border-bottom: 3px solid var(--ink);
         }
@@ -31,7 +32,7 @@
         .logo {
             font-size: 1.2rem;
             font-weight: 800;
-            color: var(--ink-contrast);
+            color: var(--ink);
             text-decoration: none;
             text-transform: uppercase;
             letter-spacing: 0.02em;
@@ -43,7 +44,7 @@
             flex-wrap: wrap;
         }
         .nav-links a {
-            color: var(--ink-contrast);
+            color: var(--ink);
             text-decoration: none;
             padding: 0.5rem 0.85rem;
             font-size: 0.8rem;
@@ -52,7 +53,7 @@
             border: 2px solid transparent;
         }
         .nav-links a:hover {
-            border-color: var(--ink-contrast);
+            border-color: var(--ink);
         }
         .main-wrapper {
             display: flex;
@@ -110,8 +111,8 @@
             width: 100%;
         }
         .footer {
-            background-color: var(--ink);
-            color: var(--ink-contrast);
+            background-color: var(--card-bg);
+            color: var(--ink);
             padding: 1.5rem;
             margin-top: auto;
             text-align: center;
@@ -133,7 +134,7 @@
             justify-content: center;
         }
         .footer-links a {
-            color: var(--ink-contrast);
+            color: var(--ink);
             text-decoration: none;
             font-size: 0.8rem;
             font-weight: 700;
@@ -205,6 +206,7 @@
                     <a href="{{ route('login') }}">Login</a>
                     <a href="{{ route('register') }}">Register</a>
                 @endauth
+                <x-notification-bell />
                 <button type="button" class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">
                     <span id="theme-toggle-icon">&#9789;</span>
                 </button>
@@ -243,6 +245,7 @@
     </footer>
 
     @include('partials.theme-toggle-script')
+    @include('partials.confirm-modal')
 
     @stack('scripts')
 </body>

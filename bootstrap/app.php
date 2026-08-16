@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
+        $middleware->web(append: [
+            \App\Http\Middleware\EnsureUserIsNotSuspended::class,
+        ]);
     })
     ->withSchedule(function (Schedule $schedule): void {
         // Update asset prices every 5 minutes automatically

@@ -61,7 +61,7 @@
                                         <button type="submit" class="btn btn-success" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Mark Read</button>
                                     </form>
                                 @endif
-                                <form method="POST" action="{{ route('contact.destroy', $submission) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this submission?');">
+                                <form method="POST" action="{{ route('contact.destroy', $submission) }}" style="display: inline;" onsubmit="return confirmAction(event, 'Are you sure you want to delete this submission?');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Delete</button>

@@ -4,6 +4,7 @@
     @include('partials.theme-init-script')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', config('app.name', 'PaperFolio'))</title>
     @include('partials.theme-styles')
     <style>
@@ -361,6 +362,7 @@
                 <div class="cash-chip">
                     ${{ number_format($navUser->getCashBalance(), 2) }} available
                 </div>
+                <x-notification-bell />
                 <button type="button" class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">
                     <span id="theme-toggle-icon">&#9789;</span>
                 </button>
@@ -374,6 +376,7 @@
     </div>
 
     @include('partials.theme-toggle-script')
+    @include('partials.confirm-modal')
 
     @stack('scripts')
 </body>

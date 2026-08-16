@@ -274,7 +274,7 @@
                     @auth
                         @if(auth()->user()->is_admin)
                             <div class="delete-button-top" onclick="event.stopPropagation();">
-                                <form method="POST" action="{{ route('news.destroy', $item) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this announcement? This action cannot be undone.');">
+                                <form method="POST" action="{{ route('news.destroy', $item) }}" style="display: inline;" onsubmit="return confirmAction(event, 'Are you sure you want to delete this announcement? This action cannot be undone.');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger">Delete</button>

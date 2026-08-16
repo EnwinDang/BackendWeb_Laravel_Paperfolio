@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\ContactSubmission;
 use App\Models\User;
+use App\Notifications\NewContactSubmission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 
 class ContactController extends Controller
 {
@@ -35,7 +37,7 @@ class ContactController extends Controller
         ]);
 
         // Store the submission in the database
-        ContactSubmission::create([
+        $submission = ContactSubmission::create([
             'name' => $request->name,
             'email' => $request->email,
             'subject' => $request->subject,
@@ -43,11 +45,11 @@ class ContactController extends Controller
             'read' => false,
         ]);
 
+        $admins = User::where('is_admin', true)->get();
+
         // Send email to all admins. The submission is already saved above, so a
         // broken/unconfigured mail setup shouldn't fail the whole request.
         try {
-            $admins = User::where('is_admin', true)->get();
-
             foreach ($admins as $admin) {
                 Mail::raw(
                     "Name: {$request->name}\n" .
@@ -62,6 +64,13 @@ class ContactController extends Controller
             }
         } catch (\Exception $e) {
             Log::error('Failed to send contact form notification email: ' . $e->getMessage());
+        }
+
+        // In-app notification for the admin bell, independent of email delivery.
+        try {
+            Notification::send($admins, new NewContactSubmission($submission));
+        } catch (\Exception $e) {
+            Log::error('Failed to send contact form in-app notification: ' . $e->getMessage());
         }
 
         return redirect()->route('contact.show')->with('success', 'Your message has been sent successfully.');

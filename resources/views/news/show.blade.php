@@ -36,7 +36,7 @@
         @auth
             @if(auth()->user()->is_admin)
                 <a href="{{ route('news.edit', $news) }}" class="btn btn-primary">Edit</a>
-                <form method="POST" action="{{ route('news.destroy', $news) }}" onsubmit="return confirm('Are you sure you want to delete this announcement?');">
+                <form method="POST" action="{{ route('news.destroy', $news) }}" onsubmit="return confirmAction(event, 'Are you sure you want to delete this announcement?');">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-danger">Delete</button>
@@ -103,7 +103,7 @@
                             </div>
                             @auth
                                 @if(auth()->user()->is_admin || auth()->id() === $comment->user_id)
-                                    <form method="POST" action="{{ route('news.comments.destroy', $comment) }}" onsubmit="return confirm('Are you sure you want to delete this comment?');">
+                                    <form method="POST" action="{{ route('news.comments.destroy', $comment) }}" onsubmit="return confirmAction(event, 'Are you sure you want to delete this comment?');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.7rem;">Delete</button>

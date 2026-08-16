@@ -11,5 +11,10 @@
         localStorage.setItem('cryptohub-theme', next);
         updateThemeIcon();
     }
+    function toggleSidebar() {
+        var next = document.documentElement.getAttribute('data-sidebar') === 'collapsed' ? 'expanded' : 'collapsed';
+        document.documentElement.setAttribute('data-sidebar', next);
+        localStorage.setItem('cryptohub-sidebar', next);
+    }
     updateThemeIcon();
 </script>

@@ -122,7 +122,7 @@
             <p style="font-size: 0.85rem; color: var(--gray); margin-bottom: 1rem;">
                 Wipes all your trades and leveraged positions and resets your cash to exactly $1,000. Cannot be undone.
             </p>
-            <form method="POST" action="{{ route('portfolio.restart') }}" onsubmit="return confirm('This deletes all your trades and open positions and resets your cash to $1,000. Are you sure?');">
+            <form method="POST" action="{{ route('portfolio.restart') }}" onsubmit="return confirmAction(event, 'This deletes all your trades and open positions and resets your cash to \$1,000. Are you sure?');">
                 @csrf
                 <button type="submit" class="btn btn-secondary">Restart Portfolio</button>
             </form>

@@ -36,8 +36,10 @@
             text-transform: uppercase;
             padding: 0.5rem 0.75rem;
         }
-        .nav-links a:hover { color: var(--accent); }
+        .nav-links a:not(.btn):hover { color: var(--accent); }
         .nav-links a.active { color: var(--accent); }
+        .btn-green:hover, .btn-pink:hover { filter: brightness(0.92); }
+        .btn-outline:hover { background: var(--accent-dim); }
         .btn-outline { background: transparent; color: var(--ink); }
         .btn-green { background: var(--accent); color: var(--on-accent); }
         .btn-pink { background: var(--accent); color: var(--on-accent); }

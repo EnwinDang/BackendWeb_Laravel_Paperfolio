@@ -11,6 +11,7 @@ use App\Models\FaqItem;
 use App\Models\Trade;
 use App\Models\ContactSubmission;
 use App\Models\Message;
+use App\Models\Post;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
@@ -378,5 +379,42 @@ Have a suggestion for another asset we should add? Let us know through the conta
             'read_at' => null,
             'created_at' => Carbon::now()->subHours(6),
         ]);
+
+        // Create Feed Posts (admins can't post themselves - see PostController::store -
+        // so these all come from the regular demo users, same as the trading platform's
+        // own rule). One is deliberately spammy so there's an obvious "delete this" example
+        // for admin moderation, instead of a feed that's empty on a fresh seed.
+        $feedPost1 = Post::create([
+            'user_id' => $user1->id,
+            'content' => 'Just went long on $BTC, feeling good about this breakout. LFG',
+            'created_at' => Carbon::now()->subHours(18),
+            'updated_at' => Carbon::now()->subHours(18),
+        ]);
+
+        $feedPost2 = Post::create([
+            'user_id' => $user2->id,
+            'content' => 'Slowly stacking $ETH on every dip. Patience pays off in this market.',
+            'created_at' => Carbon::now()->subHours(10),
+            'updated_at' => Carbon::now()->subHours(10),
+        ]);
+
+        $feedPost3 = Post::create([
+            'user_id' => $user3->id,
+            'content' => 'First week on PaperFolio and already learned a lot from watching $SOL move. Loving this platform!',
+            'created_at' => Carbon::now()->subHours(4),
+            'updated_at' => Carbon::now()->subHours(4),
+        ]);
+
+        Post::create([
+            'user_id' => $user2->id,
+            'content' => 'GUARANTEED 1000x GAINS!! DM me right now for my secret signal group, limited spots left!!!',
+            'created_at' => Carbon::now()->subHours(2),
+            'updated_at' => Carbon::now()->subHours(2),
+        ]);
+
+        // A few likes so the Post<->User relationship isn't empty either
+        $feedPost1->likers()->attach([$user2->id, $user3->id]);
+        $feedPost2->likers()->attach([$user1->id]);
+        $feedPost3->likers()->attach([$user1->id, $user2->id]);
     }
 }

@@ -73,6 +73,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/messages', [\App\Http\Controllers\MessageController::class, 'index'])->name('messages.index');
     Route::get('/messages/{user}', [\App\Http\Controllers\MessageController::class, 'show'])->name('messages.show');
     Route::post('/messages/{user}', [\App\Http\Controllers\MessageController::class, 'store'])->name('messages.store');
+
+    // Notifications - specific routes before the parameterized mark-read route
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::post('/notifications/{notification}/read', [\App\Http\Controllers\NotificationController::class, 'markRead'])->name('notifications.read');
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -94,6 +99,8 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/users/create', [\App\Http\Controllers\UserController::class, 'create'])->name('users.create');
     Route::post('/users', [\App\Http\Controllers\UserController::class, 'store'])->name('users.store');
     Route::post('/users/{user}/toggle-admin', [\App\Http\Controllers\UserController::class, 'toggleAdmin'])->name('users.toggle-admin');
+    Route::post('/users/{user}/toggle-suspend', [\App\Http\Controllers\UserController::class, 'toggleSuspend'])->name('users.toggle-suspend');
+    Route::post('/users/{user}/erase', [\App\Http\Controllers\UserController::class, 'erase'])->name('users.erase');
     
     // News management - specific routes must come before parameterized routes
     Route::get('/news/create', [\App\Http\Controllers\NewsController::class, 'create'])->name('news.create');

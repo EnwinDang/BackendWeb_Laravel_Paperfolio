@@ -13,6 +13,19 @@ class Post extends Model
         'content',
     ];
 
+    /**
+     * Reasons an admin can give when removing someone else's post.
+     * "other" pairs with a free-text custom reason typed by the admin.
+     */
+    public const DELETION_REASONS = [
+        'spam' => 'Spam',
+        'inappropriate' => 'Inappropriate content',
+        'harassment' => 'Harassment or abuse',
+        'misinformation' => 'Misinformation',
+        'off_topic' => 'Off-topic',
+        'other' => 'Other',
+    ];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

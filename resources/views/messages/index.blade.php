@@ -1,4 +1,4 @@
-@extends('layouts.dashboard')
+@extends(auth()->user()->is_admin ? 'layouts.app' : 'layouts.dashboard')
 
 @section('title', 'Messages')
 
